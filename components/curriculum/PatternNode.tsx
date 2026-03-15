@@ -3,6 +3,7 @@ import { View, Text, Pressable } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { Pattern, PatternStatus } from '../../types';
+import { theme } from '../../lib/theme';
 
 interface PatternNodeProps {
   pattern: Pattern;
@@ -13,10 +14,10 @@ interface PatternNodeProps {
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 const STATUS_CONFIG: Record<PatternStatus, { color: string; icon: IoniconsName; iconColor: string; label: string }> = {
-  locked:     { color: 'border-habla-border bg-habla-surface', icon: 'lock-closed', iconColor: '#A08060', label: 'Locked' },
-  introduced: { color: 'border-habla-gold bg-habla-gold/10', icon: 'book', iconColor: '#D4A017', label: 'Learning' },
-  practicing: { color: 'border-habla-warning bg-habla-warning/10', icon: 'flash', iconColor: '#F39C12', label: 'Practicing' },
-  mastered:   { color: 'border-habla-success bg-habla-success/10', icon: 'star', iconColor: '#27AE60', label: 'Mastered' },
+  locked:     { color: 'border-habla-border bg-habla-surface', icon: 'lock-closed', iconColor: theme.colors.brownTan, label: 'Locked' },
+  introduced: { color: 'border-habla-gold bg-habla-gold/10', icon: 'book', iconColor: theme.colors.gold, label: 'Learning' },
+  practicing: { color: 'border-habla-warning bg-habla-warning/10', icon: 'flash', iconColor: theme.colors.orange, label: 'Practicing' },
+  mastered:   { color: 'border-habla-success bg-habla-success/10', icon: 'star', iconColor: theme.colors.green, label: 'Mastered' },
 };
 
 export function PatternNode({ pattern, status, isUnlockable, onPress }: PatternNodeProps) {

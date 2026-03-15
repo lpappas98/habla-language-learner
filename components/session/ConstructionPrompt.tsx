@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { ConstructExercise } from '../../types';
+import { theme } from '../../lib/theme';
 
 interface ConstructionPromptProps {
   exercise: ConstructExercise;
@@ -40,7 +41,7 @@ export function ConstructionPrompt({ exercise, patternTitle, hintLevel }: Constr
           <Text className="text-habla-muted text-xs text-center mb-1 uppercase tracking-wide">
             Context
           </Text>
-          <Text style={{ color: '#6B5A40', fontSize: 15, fontStyle: 'italic', textAlign: 'center' }}>
+          <Text style={{ color: theme.colors.brownLight, fontSize: 15, fontStyle: 'italic', textAlign: 'center' }}>
             {exercise.sentenceFrame}
           </Text>
         </Animated.View>

@@ -7,6 +7,7 @@ import { useUserStore } from '../../store/userStore';
 import { StreakCounter } from '../../components/common/StreakCounter';
 import { getPatterns, getRecentSessions, getAllPatternProgress, getDuePatternCount, getDueVocabularyCount } from '../../lib/db';
 import { streak } from '../../lib/mmkv';
+import { theme } from '../../lib/theme';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -56,7 +57,7 @@ export default function HomeScreen() {
     .join(' · ');
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#1A1008' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.brown }}>
       <ScrollView
         contentContainerStyle={{ padding: 20, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
@@ -80,7 +81,7 @@ export default function HomeScreen() {
           <Animated.View
             entering={FadeInDown.delay(80).duration(400)}
             style={{
-              backgroundColor: '#2A1A0A',
+              backgroundColor: theme.colors.brownMidDark,
               borderRadius: 20,
               padding: 18,
               marginBottom: 14,
@@ -91,26 +92,26 @@ export default function HomeScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               <View style={{ flex: 1 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                  <Ionicons name="refresh-circle" size={18} color="#D4A017" />
-                  <Text style={{ color: '#D4A017', fontWeight: '700', fontSize: 14 }}>
+                  <Ionicons name="refresh-circle" size={18} color={theme.colors.gold} />
+                  <Text style={{ color: theme.colors.gold, fontWeight: '700', fontSize: 14 }}>
                     Review Due
                   </Text>
                 </View>
-                <Text style={{ color: '#8B7355', fontSize: 13 }}>
+                <Text style={{ color: theme.colors.brownMuted, fontSize: 13 }}>
                   {reviewLabel}
                 </Text>
               </View>
               <Pressable
                 onPress={() => router.push('/session/review')}
                 style={{
-                  backgroundColor: '#D4A017',
+                  backgroundColor: theme.colors.gold,
                   borderRadius: 12,
                   paddingHorizontal: 18,
                   paddingVertical: 10,
                   marginLeft: 12,
                 }}
               >
-                <Text style={{ color: '#1A1008', fontWeight: '700', fontSize: 14 }}>
+                <Text style={{ color: theme.colors.brown, fontWeight: '700', fontSize: 14 }}>
                   Review →
                 </Text>
               </Pressable>
@@ -123,13 +124,13 @@ export default function HomeScreen() {
           <Animated.View
             entering={FadeInDown.delay(100).duration(400)}
             style={{
-              backgroundColor: '#3D2415',
+              backgroundColor: theme.colors.brownDeep,
               borderRadius: 24,
               padding: 24,
               marginBottom: 20,
               borderWidth: 1,
               borderColor: 'rgba(212,160,23,0.3)',
-              shadowColor: '#D4A017',
+              shadowColor: theme.colors.gold,
               shadowOffset: { width: 0, height: 4 },
               shadowOpacity: 0.15,
               shadowRadius: 12,
@@ -144,13 +145,13 @@ export default function HomeScreen() {
                 alignItems: 'center',
                 justifyContent: 'center',
               }}>
-                <Text style={{ color: '#D4A017', fontSize: 12, fontWeight: '700' }}>
+                <Text style={{ color: theme.colors.gold, fontSize: 12, fontWeight: '700' }}>
                   {nextPattern.level}
                 </Text>
               </View>
               <Text className="text-habla-muted text-xs">Today's Pattern</Text>
             </View>
-            <Text style={{ color: '#F5E6D0', fontSize: 22, fontWeight: '800', marginBottom: 6, lineHeight: 28 }}>
+            <Text style={{ color: theme.colors.creamLight, fontSize: 22, fontWeight: '800', marginBottom: 6, lineHeight: 28 }}>
               {nextPattern.titleEn}
             </Text>
             <Text className="text-habla-muted text-sm mb-5" numberOfLines={2}>
@@ -159,13 +160,13 @@ export default function HomeScreen() {
             <Pressable
               onPress={startSession}
               style={{
-                backgroundColor: '#D4A017',
+                backgroundColor: theme.colors.gold,
                 borderRadius: 14,
                 padding: 14,
                 alignItems: 'center',
               }}
             >
-              <Text style={{ color: '#1A1008', fontWeight: 'bold', fontSize: 16 }}>
+              <Text style={{ color: theme.colors.brown, fontWeight: 'bold', fontSize: 16 }}>
                 Start Session →
               </Text>
             </Pressable>
@@ -186,7 +187,7 @@ export default function HomeScreen() {
               key={stat.label}
               className="flex-1 bg-habla-card border border-habla-border rounded-2xl p-4 items-center gap-1"
             >
-              <Ionicons name={stat.icon} size={20} color="#D4A017" />
+              <Ionicons name={stat.icon} size={20} color={theme.colors.gold} />
               <Text className="text-habla-cream font-bold text-lg">{stat.value}</Text>
               <Text className="text-habla-muted text-xs">{stat.label}</Text>
             </View>
@@ -220,7 +221,7 @@ export default function HomeScreen() {
                     </Text>
                   </View>
                   <Text style={{
-                    color: accuracy >= 80 ? '#27AE60' : accuracy >= 60 ? '#D4A017' : '#E74C3C',
+                    color: accuracy >= 80 ? theme.colors.green : accuracy >= 60 ? theme.colors.gold : theme.colors.red,
                     fontWeight: '700',
                     fontSize: 16,
                   }}>
@@ -232,7 +233,7 @@ export default function HomeScreen() {
           </Animated.View>
         ) : (
           <Animated.View entering={FadeInDown.delay(200).duration(400)} className="items-center py-10">
-            <Ionicons name="rocket" size={48} color="#D4A017" />
+            <Ionicons name="rocket" size={48} color={theme.colors.gold} />
             <Text className="text-habla-cream font-semibold text-lg mt-3">Ready to start?</Text>
             <Text className="text-habla-muted text-sm text-center mt-1">
               Complete your first session to begin tracking progress.

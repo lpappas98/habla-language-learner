@@ -9,6 +9,7 @@ import Animated, {
 import * as Haptics from 'expo-haptics';
 import { useSessionStore, selectSessionScore } from '../../store/sessionStore';
 import { getPattern, saveSession } from '../../lib/db';
+import { theme } from '../../lib/theme';
 import { useStreak } from '../../hooks/useStreak';
 import { StreakCounter } from '../../components/common/StreakCounter';
 import { ProgressBar } from '../../components/common/ProgressBar';
@@ -32,7 +33,7 @@ function AnimatedStar({ index, filled }: { index: number; filled: boolean }) {
 
   return (
     <Animated.View style={style}>
-      <Ionicons name={filled ? 'star' : 'star-outline'} size={48} color={filled ? '#D4A017' : '#5C3A1E'} />
+      <Ionicons name={filled ? 'star' : 'star-outline'} size={48} color={filled ? theme.colors.gold : theme.colors.brownBorder} />
     </Animated.View>
   );
 }
@@ -106,7 +107,7 @@ export default function SummaryScreen() {
   const currentStreak = require('../../lib/mmkv').streak.get() as number;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#1A1008' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.brown }}>
       <Animated.View style={[containerStyle, { flex: 1 }]}>
         <ScrollView
           contentContainerStyle={{ flexGrow: 1, padding: 28, alignItems: 'center', justifyContent: 'center' }}
@@ -115,7 +116,7 @@ export default function SummaryScreen() {
           <Animated.View style={[contentStyle, { alignItems: 'center', width: '100%' }]}>
             {/* Title */}
             <Text style={{
-              color: accuracy >= 0.8 ? '#D4A017' : '#F5E6D0',
+              color: accuracy >= 0.8 ? theme.colors.gold : theme.colors.creamLight,
               fontSize: 30,
               fontWeight: '900',
               marginBottom: 6,
@@ -123,7 +124,7 @@ export default function SummaryScreen() {
               {accuracy >= 0.8 ? '¡Excelente!' : accuracy >= 0.5 ? '¡Bien hecho!' : '¡Sigue así!'}
             </Text>
             {pattern && (
-              <Text style={{ color: '#A08060', fontSize: 15, marginBottom: 32 }}>
+              <Text style={{ color: theme.colors.brownTan, fontSize: 15, marginBottom: 32 }}>
                 {pattern.titleEn}
               </Text>
             )}
@@ -137,12 +138,12 @@ export default function SummaryScreen() {
 
             {/* Score card */}
             <View style={{
-              backgroundColor: '#2A1A0E',
+              backgroundColor: theme.colors.brownMid,
               borderRadius: 20,
               padding: 24,
               width: '100%',
               borderWidth: 1,
-              borderColor: '#5C3A1E',
+              borderColor: theme.colors.brownBorder,
               marginBottom: 20,
               gap: 16,
             }}>
@@ -157,18 +158,18 @@ export default function SummaryScreen() {
                       fontSize: 30,
                       fontWeight: '900',
                       color: s.label === 'Accuracy'
-                        ? (accuracy >= 0.8 ? '#27AE60' : accuracy >= 0.6 ? '#D4A017' : '#E74C3C')
-                        : '#D4A017',
+                        ? (accuracy >= 0.8 ? theme.colors.green : accuracy >= 0.6 ? theme.colors.gold : theme.colors.red)
+                        : theme.colors.gold,
                     }}>
                       {s.value}
                     </Text>
-                    <Text style={{ color: '#A08060', fontSize: 12 }}>{s.label}</Text>
+                    <Text style={{ color: theme.colors.brownTan, fontSize: 12 }}>{s.label}</Text>
                   </View>
                 ))}
               </View>
               <ProgressBar
                 progress={accuracy}
-                color={accuracy >= 0.8 ? '#27AE60' : '#F39C12'}
+                color={accuracy >= 0.8 ? theme.colors.green : theme.colors.orange}
                 showPercentage
               />
             </View>
@@ -176,12 +177,12 @@ export default function SummaryScreen() {
             {/* Streak */}
             <Animated.View
               style={[streakStyle, {
-                backgroundColor: '#3A2808',
+                backgroundColor: theme.colors.brownDark,
                 borderRadius: 20,
                 paddingHorizontal: 20,
                 paddingVertical: 12,
                 borderWidth: 1,
-                borderColor: '#D4A017',
+                borderColor: theme.colors.gold,
               }]}
             >
               <StreakCounter days={currentStreak} animate />
@@ -194,18 +195,18 @@ export default function SummaryScreen() {
           padding: 20,
           gap: 10,
           borderTopWidth: 1,
-          borderTopColor: '#5C3A1E',
+          borderTopColor: theme.colors.brownBorder,
         }}>
           <Pressable
             onPress={handleDone}
             style={{
-              backgroundColor: '#D4A017',
+              backgroundColor: theme.colors.gold,
               borderRadius: 14,
               padding: 16,
               alignItems: 'center',
             }}
           >
-            <Text style={{ color: '#1A1008', fontSize: 16, fontWeight: 'bold' }}>
+            <Text style={{ color: theme.colors.brown, fontSize: 16, fontWeight: 'bold' }}>
               Done for today
             </Text>
           </Pressable>
@@ -213,15 +214,15 @@ export default function SummaryScreen() {
           <Pressable
             onPress={handleKeepPracticing}
             style={{
-              backgroundColor: '#2A1A0E',
+              backgroundColor: theme.colors.brownMid,
               borderRadius: 14,
               padding: 15,
               alignItems: 'center',
               borderWidth: 1,
-              borderColor: '#5C3A1E',
+              borderColor: theme.colors.brownBorder,
             }}
           >
-            <Text style={{ color: '#A08060', fontSize: 15 }}>Keep Practicing</Text>
+            <Text style={{ color: theme.colors.brownTan, fontSize: 15 }}>Keep Practicing</Text>
           </Pressable>
         </View>
       </Animated.View>

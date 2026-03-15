@@ -7,6 +7,7 @@ import { getAllPatternProgress, getRecentSessions, getVocabularyCount } from '..
 import { streak, getSettings, setSettings } from '../../lib/mmkv';
 import { LevelBadge } from '../../components/curriculum/LevelBadge';
 import { ProgressBar } from '../../components/common/ProgressBar';
+import { theme } from '../../lib/theme';
 
 // Tier totals (hardcoded — update when tier 2 data ships)
 const TIER1_TOTAL = 15;
@@ -86,7 +87,7 @@ export default function ProfileScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#1A1008' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.brown }}>
       <ScrollView
         contentContainerStyle={{ padding: 20, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
@@ -97,13 +98,13 @@ export default function ProfileScreen() {
             width: 80,
             height: 80,
             borderRadius: 40,
-            backgroundColor: '#3A2808',
+            backgroundColor: theme.colors.brownDark,
             borderWidth: 2,
-            borderColor: '#D4A017',
+            borderColor: theme.colors.gold,
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-            <Text style={{ color: '#D4A017', fontSize: 28, fontWeight: '800' }}>{initials}</Text>
+            <Text style={{ color: theme.colors.gold, fontSize: 28, fontWeight: '800' }}>{initials}</Text>
           </View>
           <View className="items-center gap-1">
             <Text className="text-habla-cream text-xl font-bold">{displayName}</Text>
@@ -126,7 +127,7 @@ export default function ProfileScreen() {
               paddingHorizontal: 12,
               paddingVertical: 5,
             }}>
-              <Text style={{ color: '#D4A017', fontWeight: '700', fontSize: 13 }}>
+              <Text style={{ color: theme.colors.gold, fontWeight: '700', fontSize: 13 }}>
                 {cefrLevel}
               </Text>
             </View>
@@ -143,7 +144,7 @@ export default function ProfileScreen() {
               { label: 'Sessions', value: sessions.length, icon: 'trophy' as const },
             ] as const).map(s => (
               <View key={s.label} className="flex-1 items-center gap-1">
-                <Ionicons name={s.icon} size={24} color="#D4A017" />
+                <Ionicons name={s.icon} size={24} color={theme.colors.gold} />
                 <Text className="text-habla-cream font-bold text-xl">{s.value}</Text>
                 <Text className="text-habla-muted text-xs">{s.label}</Text>
               </View>
@@ -153,18 +154,18 @@ export default function ProfileScreen() {
 
           {/* Tier breakdown */}
           <View style={{ marginTop: 14, gap: 6 }}>
-            <Text style={{ color: '#8B7355', fontSize: 12, fontWeight: '600', marginBottom: 4 }}>
+            <Text style={{ color: theme.colors.brownMuted, fontSize: 12, fontWeight: '600', marginBottom: 4 }}>
               Patterns by Tier
             </Text>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <Text style={{ color: '#F5E6D0', fontSize: 13 }}>Tier 1</Text>
-              <Text style={{ color: '#D4A017', fontSize: 13, fontWeight: '600' }}>
+              <Text style={{ color: theme.colors.creamLight, fontSize: 13 }}>Tier 1</Text>
+              <Text style={{ color: theme.colors.gold, fontSize: 13, fontWeight: '600' }}>
                 {tier1Mastered}/{TIER1_TOTAL}
               </Text>
             </View>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <Text style={{ color: '#F5E6D0', fontSize: 13 }}>Tier 2</Text>
-              <Text style={{ color: tier2Mastered > 0 ? '#D4A017' : '#5C3A1E', fontSize: 13, fontWeight: '600' }}>
+              <Text style={{ color: theme.colors.creamLight, fontSize: 13 }}>Tier 2</Text>
+              <Text style={{ color: tier2Mastered > 0 ? theme.colors.gold : theme.colors.brownBorder, fontSize: 13, fontWeight: '600' }}>
                 {tier2Mastered}/{TIER2_TOTAL}
               </Text>
             </View>
@@ -183,11 +184,11 @@ export default function ProfileScreen() {
               alignItems: 'center',
               justifyContent: 'center',
             }}>
-              <Ionicons name="library-outline" size={22} color="#D4A017" />
+              <Ionicons name="library-outline" size={22} color={theme.colors.gold} />
             </View>
             <View>
-              <Text style={{ color: '#F5E6D0', fontWeight: '700', fontSize: 22 }}>{vocabCount}</Text>
-              <Text style={{ color: '#8B7355', fontSize: 13 }}>words tracked</Text>
+              <Text style={{ color: theme.colors.creamLight, fontWeight: '700', fontSize: 22 }}>{vocabCount}</Text>
+              <Text style={{ color: theme.colors.brownMuted, fontSize: 13 }}>words tracked</Text>
             </View>
           </View>
         </View>
@@ -216,11 +217,11 @@ export default function ProfileScreen() {
               alignItems: 'center',
               justifyContent: 'center',
             }}>
-              <Ionicons name="time-outline" size={22} color="#D4A017" />
+              <Ionicons name="time-outline" size={22} color={theme.colors.gold} />
             </View>
             <View>
-              <Text style={{ color: '#F5E6D0', fontWeight: '700', fontSize: 22 }}>{weekTimeLabel}</Text>
-              <Text style={{ color: '#8B7355', fontSize: 13 }}>study time</Text>
+              <Text style={{ color: theme.colors.creamLight, fontWeight: '700', fontSize: 22 }}>{weekTimeLabel}</Text>
+              <Text style={{ color: theme.colors.brownMuted, fontSize: 13 }}>study time</Text>
             </View>
           </View>
         </View>
@@ -230,7 +231,7 @@ export default function ProfileScreen() {
           <View className="flex-row justify-between items-center mb-3">
             <Text className="text-habla-cream font-semibold">Overall Accuracy</Text>
             <Text style={{
-              color: '#D4A017',
+              color: theme.colors.gold,
               fontWeight: '700',
               fontSize: 18,
             }}>
@@ -239,7 +240,7 @@ export default function ProfileScreen() {
           </View>
           <ProgressBar
             progress={overallAccuracy / 100}
-            color={overallAccuracy >= 80 ? '#27AE60' : '#F39C12'}
+            color={overallAccuracy >= 80 ? theme.colors.green : theme.colors.orange}
           />
         </View>
 
@@ -257,14 +258,14 @@ export default function ProfileScreen() {
                   key={min}
                   onPress={() => setSettings('dailyGoalMinutes', min)}
                   style={{
-                    backgroundColor: dailyGoal === min ? '#D4A017' : '#3D2415',
+                    backgroundColor: dailyGoal === min ? theme.colors.gold : theme.colors.brownDeep,
                     borderRadius: 8,
                     paddingHorizontal: 8,
                     paddingVertical: 4,
                   }}
                 >
                   <Text style={{
-                    color: dailyGoal === min ? '#1A1008' : '#A08060',
+                    color: dailyGoal === min ? theme.colors.brown : theme.colors.brownTan,
                     fontSize: 12,
                     fontWeight: '600',
                   }}>
@@ -280,8 +281,8 @@ export default function ProfileScreen() {
             <Switch
               value={notificationsEnabled}
               onValueChange={v => setSettings('notificationsEnabled', v)}
-              trackColor={{ false: '#5C3A1E', true: '#D4A017' }}
-              thumbColor="#F5E6D0"
+              trackColor={{ false: theme.colors.brownBorder, true: theme.colors.gold }}
+              thumbColor={theme.colors.creamLight}
             />
           </View>
         </View>
@@ -298,7 +299,7 @@ export default function ProfileScreen() {
             backgroundColor: 'rgba(231,76,60,0.05)',
           }}
         >
-          <Text style={{ color: '#E74C3C', fontWeight: '600', fontSize: 15 }}>Sign out</Text>
+          <Text style={{ color: theme.colors.red, fontWeight: '600', fontSize: 15 }}>Sign out</Text>
         </Pressable>
       </ScrollView>
     </SafeAreaView>

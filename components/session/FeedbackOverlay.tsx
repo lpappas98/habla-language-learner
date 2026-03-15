@@ -5,6 +5,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { theme } from '../../lib/theme';
 
 interface FeedbackOverlayProps {
   visible: boolean;
@@ -50,7 +51,7 @@ export function FeedbackOverlay({
       >
         {/* Icon + result */}
         <View className="flex-row items-center gap-3 mb-3">
-          <Ionicons name={correct ? 'checkmark-circle' : 'close-circle'} size={40} color={correct ? '#fff' : '#E74C3C'} />
+          <Ionicons name={correct ? 'checkmark-circle' : 'close-circle'} size={40} color={correct ? theme.colors.white : theme.colors.red} />
           <View>
             <Text className="text-habla-cream text-xl font-bold">
               {correct ? '¡Correcto!' : 'Almost!'}

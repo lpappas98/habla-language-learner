@@ -6,6 +6,7 @@ import { PatternTree } from '../../components/curriculum/PatternTree';
 import { PatternCard } from '../../components/session/PatternCard';
 import { Pattern, PatternStatus } from '../../types';
 import { tier2Patterns } from '../../data/curriculum/tier2';
+import { theme } from '../../lib/theme';
 
 const TIER1_COUNT = 15;
 
@@ -55,7 +56,7 @@ export default function PatternsScreen() {
   const progressPct = totalCount > 0 ? masteredCount / totalCount : 0;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#1A1008' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.brown }}>
       {/* Header */}
       <View className="px-5 pt-4 pb-2">
         <Text className="text-habla-cream font-bold text-2xl mb-3">Pattern Map</Text>
@@ -66,17 +67,17 @@ export default function PatternsScreen() {
           <Pressable
             onPress={() => setSelectedTier(1)}
             style={{
-              backgroundColor: selectedTier === 1 ? '#D4A017' : '#2A1A0E',
+              backgroundColor: selectedTier === 1 ? theme.colors.gold : theme.colors.brownMid,
               borderRadius: 20,
               paddingHorizontal: 16,
               paddingVertical: 7,
               borderWidth: 1,
-              borderColor: selectedTier === 1 ? '#D4A017' : '#4A3020',
+              borderColor: selectedTier === 1 ? theme.colors.gold : theme.colors.brownSurface,
             }}
           >
             <Text
               style={{
-                color: selectedTier === 1 ? '#1A1008' : '#9A7A50',
+                color: selectedTier === 1 ? theme.colors.brown : theme.colors.brownMid2,
                 fontWeight: '700',
                 fontSize: 13,
               }}
@@ -89,17 +90,17 @@ export default function PatternsScreen() {
           <Pressable
             onPress={() => setSelectedTier(2)}
             style={{
-              backgroundColor: selectedTier === 2 ? '#D4A017' : '#2A1A0E',
+              backgroundColor: selectedTier === 2 ? theme.colors.gold : theme.colors.brownMid,
               borderRadius: 20,
               paddingHorizontal: 16,
               paddingVertical: 7,
               borderWidth: 1,
-              borderColor: selectedTier === 2 ? '#D4A017' : '#4A3020',
+              borderColor: selectedTier === 2 ? theme.colors.gold : theme.colors.brownSurface,
             }}
           >
             <Text
               style={{
-                color: selectedTier === 2 ? '#1A1008' : '#9A7A50',
+                color: selectedTier === 2 ? theme.colors.brown : theme.colors.brownMid2,
                 fontWeight: '700',
                 fontSize: 13,
               }}
@@ -111,20 +112,20 @@ export default function PatternsScreen() {
           {/* Tier 3 pill — locked/placeholder */}
           <View
             style={{
-              backgroundColor: '#2A1A0E',
+              backgroundColor: theme.colors.brownMid,
               borderRadius: 20,
               paddingHorizontal: 16,
               paddingVertical: 7,
               borderWidth: 1,
-              borderColor: '#3A2808',
+              borderColor: theme.colors.brownDark,
               flexDirection: 'row',
               alignItems: 'center',
               gap: 4,
               opacity: 0.5,
             }}
           >
-            <Text style={{ color: '#9A7A50', fontWeight: '700', fontSize: 13 }}>Tier 3</Text>
-            <Text style={{ color: '#9A7A50', fontSize: 11 }}>🔒</Text>
+            <Text style={{ color: theme.colors.brownMid2, fontWeight: '700', fontSize: 13 }}>Tier 3</Text>
+            <Text style={{ color: theme.colors.brownMid2, fontSize: 11 }}>🔒</Text>
           </View>
         </View>
 
@@ -133,12 +134,12 @@ export default function PatternsScreen() {
         </Text>
 
         {/* Progress bar */}
-        <View style={{ height: 6, backgroundColor: '#3D2415', borderRadius: 3, overflow: 'hidden' }}>
+        <View style={{ height: 6, backgroundColor: theme.colors.brownDeep, borderRadius: 3, overflow: 'hidden' }}>
           <View
             style={{
               width: `${progressPct * 100}%`,
               height: 6,
-              backgroundColor: '#D4A017',
+              backgroundColor: theme.colors.gold,
               borderRadius: 3,
             }}
           />
@@ -152,19 +153,19 @@ export default function PatternsScreen() {
         >
           <View
             style={{
-              backgroundColor: '#2A1A0E',
+              backgroundColor: theme.colors.brownMid,
               borderRadius: 20,
               padding: 28,
               alignItems: 'center',
               borderWidth: 1,
-              borderColor: '#4A3020',
+              borderColor: theme.colors.brownSurface,
               width: '100%',
             }}
           >
             <Text style={{ fontSize: 36, marginBottom: 16 }}>🔒</Text>
             <Text
               style={{
-                color: '#F5E6C8',
+                color: theme.colors.cream,
                 fontWeight: 'bold',
                 fontSize: 18,
                 textAlign: 'center',
@@ -175,7 +176,7 @@ export default function PatternsScreen() {
             </Text>
             <Text
               style={{
-                color: '#9A7A50',
+                color: theme.colors.brownMid2,
                 fontSize: 14,
                 textAlign: 'center',
                 lineHeight: 20,
@@ -186,7 +187,7 @@ export default function PatternsScreen() {
             </Text>
             <View
               style={{
-                backgroundColor: '#3D2415',
+                backgroundColor: theme.colors.brownDeep,
                 borderRadius: 12,
                 paddingHorizontal: 20,
                 paddingVertical: 10,
@@ -194,7 +195,7 @@ export default function PatternsScreen() {
                 alignItems: 'center',
               }}
             >
-              <Text style={{ color: '#D4A017', fontWeight: '700', fontSize: 16 }}>
+              <Text style={{ color: theme.colors.gold, fontWeight: '700', fontSize: 16 }}>
                 {tier1MasteredCount} / {TIER1_COUNT} mastered
               </Text>
             </View>
@@ -222,7 +223,7 @@ export default function PatternsScreen() {
           <Pressable onPress={e => e.stopPropagation()}>
             <View
               style={{
-                backgroundColor: '#2A1A0E',
+                backgroundColor: theme.colors.brownMid,
                 borderTopLeftRadius: 24,
                 borderTopRightRadius: 24,
                 padding: 24,
@@ -247,14 +248,14 @@ export default function PatternsScreen() {
                         router.push(`/session/${selectedPattern.id}`);
                       }}
                       style={{
-                        backgroundColor: '#D4A017',
+                        backgroundColor: theme.colors.gold,
                         borderRadius: 14,
                         padding: 16,
                         alignItems: 'center',
                         marginBottom: 10,
                       }}
                     >
-                      <Text style={{ color: '#1A1008', fontWeight: 'bold', fontSize: 16 }}>
+                      <Text style={{ color: theme.colors.brown, fontWeight: 'bold', fontSize: 16 }}>
                         Practice This Pattern
                       </Text>
                     </Pressable>

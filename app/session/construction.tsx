@@ -11,6 +11,7 @@ import { ProgressRing } from '../../components/session/ProgressRing';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 import { getPattern, updatePatternProgress } from '../../lib/db';
 import { MatchResult, evaluateResponse } from '../../lib/fuzzyMatch';
+import { theme } from '../../lib/theme';
 
 export default function ConstructionScreen() {
   const {
@@ -218,7 +219,7 @@ export default function ConstructionScreen() {
   if (!exercise) return null;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#1A1008' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.brown }}>
       {/* Header: progress dots + close */}
       <View style={{
         flexDirection: 'row',
@@ -229,7 +230,7 @@ export default function ConstructionScreen() {
         paddingBottom: 8,
       }}>
         <Pressable onPress={() => setPhase('session_end')} style={{ padding: 8 }}>
-          <Ionicons name="close" size={24} color="#A08060" />
+          <Ionicons name="close" size={24} color={theme.colors.brownTan} />
         </Pressable>
 
         {/* Progress bar */}
@@ -243,10 +244,10 @@ export default function ConstructionScreen() {
                 borderRadius: 2,
                 backgroundColor:
                   i < progress.current - 1
-                    ? '#D4A017'
+                    ? theme.colors.gold
                     : i === progress.current - 1
-                    ? '#F0C040'
-                    : '#5C3A1E',
+                    ? theme.colors.goldLight
+                    : theme.colors.brownBorder,
               }}
             />
           ))}
@@ -274,20 +275,20 @@ export default function ConstructionScreen() {
               value={typedText}
               onChangeText={setTypedText}
               placeholder="Type in Spanish..."
-              placeholderTextColor="#5C3A1E"
+              placeholderTextColor={theme.colors.brownBorder}
               autoFocus
               autoCapitalize="none"
               keyboardType="default"
               returnKeyType="done"
               onSubmitEditing={handleTypeSubmit}
               style={{
-                backgroundColor: '#2A1A0A',
+                backgroundColor: theme.colors.brownMidDark,
                 borderWidth: 1.5,
                 borderColor: typedText.length > 0 ? 'rgba(212,160,23,0.6)' : 'rgba(212,160,23,0.25)',
                 borderRadius: 16,
                 paddingHorizontal: 18,
                 paddingVertical: 14,
-                color: '#F5E6D0',
+                color: theme.colors.creamLight,
                 fontSize: 18,
                 marginBottom: 10,
               }}
@@ -296,7 +297,7 @@ export default function ConstructionScreen() {
               onPress={handleTypeSubmit}
               disabled={!typedText.trim()}
               style={{
-                backgroundColor: typedText.trim() ? '#D4A017' : '#3D2415',
+                backgroundColor: typedText.trim() ? theme.colors.gold : theme.colors.brownDeep,
                 borderRadius: 14,
                 paddingVertical: 14,
                 alignItems: 'center',
@@ -305,7 +306,7 @@ export default function ConstructionScreen() {
               }}
             >
               <Text style={{
-                color: typedText.trim() ? '#1A1008' : '#8B7355',
+                color: typedText.trim() ? theme.colors.brown : theme.colors.brownMuted,
                 fontWeight: '700',
                 fontSize: 16,
               }}>
@@ -315,8 +316,8 @@ export default function ConstructionScreen() {
             {/* Switch to mic */}
             <Pressable onPress={switchToMic} style={{ alignItems: 'center', paddingVertical: 8 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Ionicons name="mic-outline" size={16} color="#8B7355" />
-                <Text style={{ color: '#8B7355', fontSize: 13 }}>Use mic</Text>
+                <Ionicons name="mic-outline" size={16} color={theme.colors.brownMuted} />
+                <Text style={{ color: theme.colors.brownMuted, fontSize: 13 }}>Use mic</Text>
               </View>
             </Pressable>
           </Animated.View>
@@ -330,8 +331,8 @@ export default function ConstructionScreen() {
             {/* Switch to typing */}
             <Pressable onPress={switchToTyping} style={{ alignItems: 'center', paddingVertical: 8 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Ionicons name="keypad-outline" size={16} color="#8B7355" />
-                <Text style={{ color: '#8B7355', fontSize: 13 }}>Type instead</Text>
+                <Ionicons name="keypad-outline" size={16} color={theme.colors.brownMuted} />
+                <Text style={{ color: theme.colors.brownMuted, fontSize: 13 }}>Type instead</Text>
               </View>
             </Pressable>
           </>
@@ -349,18 +350,18 @@ export default function ConstructionScreen() {
           onPress={requestHint}
           disabled={hintLevel >= 3}
           style={{
-            backgroundColor: '#2A1A0E',
+            backgroundColor: theme.colors.brownMid,
             borderRadius: 12,
             paddingHorizontal: 16,
             paddingVertical: 10,
             borderWidth: 1,
-            borderColor: '#5C3A1E',
+            borderColor: theme.colors.brownBorder,
             opacity: hintLevel >= 3 ? 0.4 : 1,
           }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Ionicons name="bulb" size={14} color="#D4A017" />
-            <Text style={{ color: '#D4A017', fontSize: 13, fontWeight: '600' }}>
+            <Ionicons name="bulb" size={14} color={theme.colors.gold} />
+            <Text style={{ color: theme.colors.gold, fontSize: 13, fontWeight: '600' }}>
               Hint {hintLevel > 0 ? `(${hintLevel}/3)` : ''}
             </Text>
           </View>
@@ -369,15 +370,15 @@ export default function ConstructionScreen() {
         <Pressable
           onPress={handleSkip}
           style={{
-            backgroundColor: '#2A1A0E',
+            backgroundColor: theme.colors.brownMid,
             borderRadius: 12,
             paddingHorizontal: 16,
             paddingVertical: 10,
             borderWidth: 1,
-            borderColor: '#5C3A1E',
+            borderColor: theme.colors.brownBorder,
           }}
         >
-          <Text style={{ color: '#A08060', fontSize: 13 }}>Skip →</Text>
+          <Text style={{ color: theme.colors.brownTan, fontSize: 13 }}>Skip →</Text>
         </Pressable>
       </View>
 
