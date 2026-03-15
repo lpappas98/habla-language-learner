@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { Exercise } from '../../types';
+import { ConstructExercise } from '../../types';
 
 interface ConstructionPromptProps {
-  exercise: Exercise;
+  exercise: ConstructExercise;
   patternTitle: string;
   hintLevel: number; // 0=none, 1=nudge, 2=pattern reminder, 3=partial
 }

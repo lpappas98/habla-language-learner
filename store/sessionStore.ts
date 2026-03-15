@@ -1,13 +1,13 @@
 import { create } from 'zustand';
-import { SessionPhase, Exercise, ExerciseAttempt } from '../types';
+import { SessionPhase, Exercise, RecognizeExercise, ConstructExercise, ExerciseAttempt } from '../types';
 
 interface SessionState {
   phase: SessionPhase;
   sessionId: number | null;
   currentPatternId: number | null;
   exercises: Exercise[];
-  recognizeExercises: Exercise[];
-  constructExercises: Exercise[];
+  recognizeExercises: RecognizeExercise[];
+  constructExercises: ConstructExercise[];
   currentExerciseIndex: number;
   attempts: ExerciseAttempt[];
   startTime: number | null;
@@ -16,7 +16,7 @@ interface SessionState {
   // Actions
   startSession: (patternId: number, exercises: Exercise[]) => void;
   setPhase: (phase: SessionPhase) => void;
-  setExercises: (recognize: Exercise[], construct: Exercise[]) => void;
+  setExercises: (recognize: RecognizeExercise[], construct: ConstructExercise[]) => void;
   recordAttempt: (attempt: Omit<ExerciseAttempt, 'id' | 'createdAt'>) => void;
   advanceExercise: () => void;
   requestHint: () => void;
@@ -29,8 +29,8 @@ const initialState = {
   sessionId: null,
   currentPatternId: null,
   exercises: [] as Exercise[],
-  recognizeExercises: [] as Exercise[],
-  constructExercises: [] as Exercise[],
+  recognizeExercises: [] as RecognizeExercise[],
+  constructExercises: [] as ConstructExercise[],
   currentExerciseIndex: 0,
   attempts: [] as ExerciseAttempt[],
   startTime: null,

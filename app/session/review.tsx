@@ -65,7 +65,7 @@ export default function ReviewScreen() {
   function handleRecognizeSelect(index: number) {
     if (!exercise || selectedIndex !== null) return;
     setSelectedIndex(index);
-    const isCorrect = index === (exercise.correctIndex ?? 0);
+    const isCorrect = index === (exercise.type === 'recognize' ? exercise.correctIndex : 0);
     if (isCorrect) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } else {
@@ -218,8 +218,8 @@ export default function ReviewScreen() {
   if (!exercise) return null;
 
   const isRecognize = exercise.type === 'recognize';
-  const options = exercise.options ?? [];
-  const correctIndex = exercise.correctIndex ?? 0;
+  const options = exercise.type === 'recognize' ? exercise.options : [];
+  const correctIndex = exercise.type === 'recognize' ? exercise.correctIndex : 0;
 
   function optionBg(i: number) {
     if (selectedIndex === null) return '#2A1A0A';

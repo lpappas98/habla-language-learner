@@ -33,20 +33,48 @@ export interface PatternExample {
   es: string;
 }
 
-export interface Exercise {
+export type HintLevel = 0 | 1 | 2 | 3;
+
+export type ErrorType =
+  | 'ser_vs_estar' | 'gender_agreement' | 'word_order'
+  | 'accent_mark' | 'vocabulary' | 'verb_conjugation'
+  | 'article' | 'other';
+
+export type MatchResult = 'correct' | 'close' | 'incorrect';
+
+export interface DifficultyConfig {
+  hintDelayMs: number;
+  fuzzyMatchThreshold: number;
+  sentenceFrameMode: 'proactive' | 'level2' | 'level3' | 'never';
+}
+
+interface BaseExercise {
   id: number;
   patternId: number;
-  type: 'construct' | 'listen' | 'respond' | 'micro_challenge' | 'recognize';
   promptEn: string;
+  targetEs: string;
+  acceptableAlternatives: string[];
+  // Legacy fields kept for backward compatibility
   expectedEs: string;
   acceptableEs: string[];
   hint: string;
   requiredPatterns: number[];
   difficulty: number;
-  options?: string[];
-  correctIndex?: number;
-  sentenceFrame?: string;
 }
+
+export interface RecognizeExercise extends BaseExercise {
+  type: 'recognize';
+  options: string[];
+  correctIndex: number;
+}
+
+export interface ConstructExercise extends BaseExercise {
+  type: 'construct';
+  sentenceFrame?: string;
+  hintWords?: string[];
+}
+
+export type Exercise = RecognizeExercise | ConstructExercise;
 
 export interface ImmersionClip {
   id: number;
