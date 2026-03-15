@@ -80,6 +80,7 @@ export default function PatternUnlockScreen() {
 
   function handleContinue() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setPhase('hear_examples');
     router.replace('/session/hear-examples');
   }
 
