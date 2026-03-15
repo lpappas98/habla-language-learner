@@ -1,0 +1,230 @@
+import React, { useEffect } from 'react';
+import { View, Text, Pressable, ScrollView, SafeAreaView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import Animated, {
+  useSharedValue, useAnimatedStyle,
+  withDelay, withSpring, withSequence, withTiming,
+} from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
+import { useSessionStore, selectSessionScore } from '../../store/sessionStore';
+import { getPattern, saveSession } from '../../lib/db';
+import { useStreak } from '../../hooks/useStreak';
+import { StreakCounter } from '../../components/common/StreakCounter';
+import { ProgressBar } from '../../components/common/ProgressBar';
+
+function AnimatedStar({ index, filled }: { index: number; filled: boolean }) {
+  const scale = useSharedValue(0);
+
+  useEffect(() => {
+    if (filled) {
+      scale.value = withDelay(
+        (index - 1) * 250,
+        withSequence(
+          withSpring(1.4, { damping: 6 }),
+          withSpring(1, { damping: 10 })
+        )
+      );
+    }
+  }, []);
+
+  const style = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+
+  return (
+    <Animated.View style={style}>
+      <Ionicons name={filled ? 'star' : 'star-outline'} size={48} color={filled ? '#D4A017' : '#5C3A1E'} />
+    </Animated.View>
+  );
+}
+
+export default function SummaryScreen() {
+  const router = useRouter();
+  const { attempts, currentPatternId, startTime, resetSession } = useSessionStore();
+  const score = useSessionStore(selectSessionScore);
+  const { checkAndUpdateStreak } = useStreak();
+
+  const pattern = currentPatternId ? getPattern(currentPatternId) : null;
+  const accuracy = score.percentage;
+  const stars = accuracy >= 0.9 ? 3 : accuracy >= 0.7 ? 2 : 1;
+  const durationSeconds = startTime ? Math.round((Date.now() - startTime) / 1000) : 0;
+
+  const containerOpacity = useSharedValue(0);
+  const contentTranslateY = useSharedValue(30);
+  const streakScale = useSharedValue(0);
+
+  useEffect(() => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+    // Save session to DB
+    if (startTime) {
+      saveSession({
+        patternsPracticed: currentPatternId ? [currentPatternId] : [],
+        newPatternsIntroduced: [],
+        exercisesCompleted: score.total,
+        exercisesCorrect: score.correct,
+        avgResponseTimeMs: attempts.length > 0
+          ? Math.round(attempts.reduce((s, a) => s + a.responseTimeMs, 0) / attempts.length)
+          : 0,
+        sessionType: 'full',
+        durationSeconds,
+        startedAt: new Date(startTime).toISOString(),
+      });
+    }
+
+    const { wasUpdated } = checkAndUpdateStreak();
+
+    containerOpacity.value = withTiming(1, { duration: 400 });
+    contentTranslateY.value = withSpring(0, { damping: 20 });
+    if (wasUpdated) {
+      streakScale.value = withDelay(
+        1000,
+        withSequence(withSpring(1.5, { damping: 6 }), withSpring(1))
+      );
+    } else {
+      streakScale.value = withDelay(1000, withSpring(1));
+    }
+  }, []);
+
+  const containerStyle = useAnimatedStyle(() => ({ opacity: containerOpacity.value }));
+  const contentStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: contentTranslateY.value }],
+  }));
+  const streakStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: streakScale.value }],
+  }));
+
+  function handleDone() {
+    resetSession();
+    router.replace('/(tabs)');
+  }
+
+  function handleKeepPracticing() {
+    resetSession();
+    router.replace('/(tabs)/practice');
+  }
+
+  const currentStreak = require('../../lib/mmkv').streak.get() as number;
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#1A1008' }}>
+      <Animated.View style={[containerStyle, { flex: 1 }]}>
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, padding: 28, alignItems: 'center', justifyContent: 'center' }}
+          showsVerticalScrollIndicator={false}
+        >
+          <Animated.View style={[contentStyle, { alignItems: 'center', width: '100%' }]}>
+            {/* Title */}
+            <Text style={{
+              color: accuracy >= 0.8 ? '#D4A017' : '#F5E6D0',
+              fontSize: 30,
+              fontWeight: '900',
+              marginBottom: 6,
+            }}>
+              {accuracy >= 0.8 ? '¡Excelente!' : accuracy >= 0.5 ? '¡Bien hecho!' : '¡Sigue así!'}
+            </Text>
+            {pattern && (
+              <Text style={{ color: '#A08060', fontSize: 15, marginBottom: 32 }}>
+                {pattern.titleEn}
+              </Text>
+            )}
+
+            {/* Stars */}
+            <View style={{ flexDirection: 'row', gap: 8, justifyContent: 'center', marginBottom: 32 }}>
+              {[1, 2, 3].map(i => (
+                <AnimatedStar key={i} index={i} filled={i <= stars} />
+              ))}
+            </View>
+
+            {/* Score card */}
+            <View style={{
+              backgroundColor: '#2A1A0E',
+              borderRadius: 20,
+              padding: 24,
+              width: '100%',
+              borderWidth: 1,
+              borderColor: '#5C3A1E',
+              marginBottom: 20,
+              gap: 16,
+            }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+                {[
+                  { label: 'Correct', value: `${score.correct}/${score.total}` },
+                  { label: 'Accuracy', value: `${Math.round(accuracy * 100)}%` },
+                  { label: 'Time', value: `${Math.max(1, Math.round(durationSeconds / 60))}m` },
+                ].map(s => (
+                  <View key={s.label} style={{ alignItems: 'center' }}>
+                    <Text style={{
+                      fontSize: 30,
+                      fontWeight: '900',
+                      color: s.label === 'Accuracy'
+                        ? (accuracy >= 0.8 ? '#27AE60' : accuracy >= 0.6 ? '#D4A017' : '#E74C3C')
+                        : '#D4A017',
+                    }}>
+                      {s.value}
+                    </Text>
+                    <Text style={{ color: '#A08060', fontSize: 12 }}>{s.label}</Text>
+                  </View>
+                ))}
+              </View>
+              <ProgressBar
+                progress={accuracy}
+                color={accuracy >= 0.8 ? '#27AE60' : '#F39C12'}
+                showPercentage
+              />
+            </View>
+
+            {/* Streak */}
+            <Animated.View
+              style={[streakStyle, {
+                backgroundColor: '#3A2808',
+                borderRadius: 20,
+                paddingHorizontal: 20,
+                paddingVertical: 12,
+                borderWidth: 1,
+                borderColor: '#D4A017',
+              }]}
+            >
+              <StreakCounter days={currentStreak} animate />
+            </Animated.View>
+          </Animated.View>
+        </ScrollView>
+
+        {/* Buttons */}
+        <View style={{
+          padding: 20,
+          gap: 10,
+          borderTopWidth: 1,
+          borderTopColor: '#5C3A1E',
+        }}>
+          <Pressable
+            onPress={handleDone}
+            style={{
+              backgroundColor: '#D4A017',
+              borderRadius: 14,
+              padding: 16,
+              alignItems: 'center',
+            }}
+          >
+            <Text style={{ color: '#1A1008', fontSize: 16, fontWeight: 'bold' }}>
+              Done for today
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={handleKeepPracticing}
+            style={{
+              backgroundColor: '#2A1A0E',
+              borderRadius: 14,
+              padding: 15,
+              alignItems: 'center',
+              borderWidth: 1,
+              borderColor: '#5C3A1E',
+            }}
+          >
+            <Text style={{ color: '#A08060', fontSize: 15 }}>Keep Practicing</Text>
+          </Pressable>
+        </View>
+      </Animated.View>
+    </SafeAreaView>
+  );
+}

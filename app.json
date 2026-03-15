@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "Habla",
+    "slug": "habla",
+    "version": "1.0.0",
+    "scheme": "habla",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1A1008"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.habla.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#1A1008",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.habla.app"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-speech-recognition",
+      "expo-sqlite",
+      "expo-secure-store"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

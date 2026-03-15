@@ -1,0 +1,27 @@
+{
+  "name": "habla-api",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/src/index.js",
+    "migrate": "node -e \"import('./src/db/client.js').then(m => m.runMigrations())\""
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.40.0",
+    "@hono/node-server": "^1.13.0",
+    "dotenv": "^16.4.5",
+    "hono": "^4.6.0",
+    "ioredis": "^5.3.2",
+    "openai": "^4.77.0",
+    "pg": "^8.11.3",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/pg": "^8.11.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  }
+}
