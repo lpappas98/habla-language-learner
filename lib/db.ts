@@ -2,6 +2,7 @@ import * as SQLite from 'expo-sqlite';
 import { Exercise, Pattern, UserPatternProgress, ExerciseAttempt, PatternStatus } from '../types';
 import { computeSM2, SRS_QUALITY } from './srs';
 import { SRS_EASE_DEFAULT } from './constants';
+import { computeRollingAccuracy, shouldDemote } from './mastery';
 
 // Lazy-initialize so openDatabaseSync() is never called at module load time.
 // expo-sqlite requires the native bridge to be fully ready first.
@@ -106,6 +107,14 @@ export function initLocalDB(): void {
     CREATE UNIQUE INDEX IF NOT EXISTS idx_vocabulary_word ON vocabulary(word);
     CREATE INDEX IF NOT EXISTS idx_exercises_pattern_id ON exercises(pattern_id);
     CREATE INDEX IF NOT EXISTS idx_attempts_session_id ON exercise_attempts(session_id);
+
+    CREATE TABLE IF NOT EXISTS demotion_log (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL,
+      pattern_id INTEGER NOT NULL,
+      demoted_at TEXT NOT NULL,
+      rolling_accuracy REAL NOT NULL
+    );
   `);
 
   // Idempotent SRS column migrations
@@ -322,12 +331,48 @@ export function updatePatternProgress(
     lastPracticedDate !== today ? currentDistinctDays + 1 : currentDistinctDays;
 
   // Mastery requires accuracy >= 0.85, >= 10 sessions, and >= 3 distinct days
-  const newStatus: PatternStatus =
+  let newStatus: PatternStatus =
     newAvgAccuracy >= 0.85 && newCount >= 10 && newDistinctDays >= 3
       ? 'mastered'
       : existing.status === 'introduced'
       ? 'practicing'
       : existing.status as PatternStatus;
+
+  // Mastery demotion: if currently mastered, check rolling accuracy over last 5 sessions
+  if (existing.status === 'mastered') {
+    const sessionRows = db.getAllSync<{ session_id: number; correct_count: number; total_count: number }>(
+      `SELECT
+        a.session_id,
+        SUM(a.was_correct) as correct_count,
+        COUNT(*) as total_count
+       FROM exercise_attempts a
+       INNER JOIN exercises e ON a.exercise_id = e.id
+       WHERE e.pattern_id = ?
+         AND a.session_id IN (
+           SELECT DISTINCT a2.session_id
+           FROM exercise_attempts a2
+           INNER JOIN exercises e2 ON a2.exercise_id = e2.id
+           WHERE e2.pattern_id = ?
+           ORDER BY a2.created_at DESC
+           LIMIT 5
+         )
+       GROUP BY a.session_id`,
+      [patternId, patternId]
+    );
+
+    const rollingAccuracy = computeRollingAccuracy(
+      sessionRows.map(r => ({ correct: r.correct_count, total: r.total_count }))
+    );
+
+    if (shouldDemote(rollingAccuracy)) {
+      newStatus = 'practicing';
+      db.runSync(
+        `INSERT INTO demotion_log (user_id, pattern_id, demoted_at, rolling_accuracy)
+         VALUES ('local', ?, datetime('now'), ?)`,
+        [patternId, rollingAccuracy]
+      );
+    }
+  }
 
   const masteredAt =
     newStatus === 'mastered' && existing.status !== 'mastered'
