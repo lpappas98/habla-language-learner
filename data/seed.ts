@@ -5,7 +5,7 @@ import { tier1Stories } from './immersion/tier1-stories';
 
 let seeded = false;
 
-export function seedCurriculum(): void {
+export function seedCurriculum(userId: string = 'local'): void {
   if (seeded) return;
   const db = getDb();
 

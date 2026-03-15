@@ -5,6 +5,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { getDueExercisesForReview, updatePatternProgress } from '../../lib/db';
+import { useUserStore } from '../../store/userStore';
 import { evaluateResponse } from '../../lib/fuzzyMatch';
 import { Exercise } from '../../types';
 
@@ -12,6 +13,7 @@ const MAX_EXERCISES = 20;
 
 export default function ReviewScreen() {
   const router = useRouter();
+  const userId = useUserStore(s => s.userId) ?? 'local';
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
@@ -34,7 +36,7 @@ export default function ReviewScreen() {
   const startTimeRef = useRef(Date.now());
 
   useEffect(() => {
-    const due = getDueExercisesForReview(MAX_EXERCISES);
+    const due = getDueExercisesForReview(userId, MAX_EXERCISES);
     // Shuffle
     const shuffled = [...due].sort(() => Math.random() - 0.5);
     setExercises(shuffled);
@@ -71,7 +73,7 @@ export default function ReviewScreen() {
     } else {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
-    updatePatternProgress(exercise.patternId, isCorrect, Date.now() - startTimeRef.current);
+    updatePatternProgress(userId, exercise.patternId, isCorrect, Date.now() - startTimeRef.current);
     selectTimerRef.current = setTimeout(() => {
       advanceToNext(isCorrect);
     }, 900);
@@ -95,7 +97,7 @@ export default function ReviewScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
 
-    updatePatternProgress(exercise.patternId, isCorrect, responseTimeMs);
+    updatePatternProgress(userId, exercise.patternId, isCorrect, responseTimeMs);
 
     const feedbackMessages: Record<string, string> = {
       correct: '¡Perfecto!',

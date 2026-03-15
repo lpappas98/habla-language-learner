@@ -2,12 +2,14 @@ import React, { useMemo } from 'react';
 import { View, Text, ScrollView, Pressable, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { getPatterns, getAllPatternProgress } from '../../lib/db';
+import { useUserStore } from '../../store/userStore';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function PracticeScreen() {
+  const userId = useUserStore(s => s.userId) ?? 'local';
   const patterns = useMemo(() => getPatterns(), []);
-  const progressArray = useMemo(() => getAllPatternProgress(), []);
+  const progressArray = useMemo(() => getAllPatternProgress(userId), [userId]);
   const router = useRouter();
 
   const available = patterns.filter(p => {

@@ -12,18 +12,19 @@ import { theme } from '../../lib/theme';
 export default function HomeScreen() {
   const router = useRouter();
   const user = useUserStore(s => s.user);
+  const userId = useUserStore(s => s.userId) ?? 'local';
   const streakDays = streak.get();
   const [dueCount, setDueCount] = useState(0);
   const [dueVocabCount, setDueVocabCount] = useState(0);
 
   const patterns = useMemo(() => getPatterns(), []);
-  const recentSessions = useMemo(() => getRecentSessions(3), []);
-  const allProgress = useMemo(() => getAllPatternProgress(), []);
+  const recentSessions = useMemo(() => getRecentSessions(userId, 3), [userId]);
+  const allProgress = useMemo(() => getAllPatternProgress(userId), [userId]);
 
   useEffect(() => {
-    getDuePatternCount('local').then(setDueCount);
+    getDuePatternCount(userId).then(setDueCount);
     getDueVocabularyCount().then(setDueVocabCount);
-  }, []);
+  }, [userId]);
 
   const masteredCount = allProgress.filter(p => p.status === 'mastered').length;
   const totalPatterns = patterns.length;

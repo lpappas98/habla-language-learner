@@ -1,9 +1,11 @@
 import { useCallback } from 'react';
 import { getAllPatternProgress, updatePatternProgress } from '../lib/db';
+import { useUserStore } from '../store/userStore';
 import { PatternStatus, UserPatternProgress } from '../types';
 
 export function usePatternProgress() {
-  const allProgress = getAllPatternProgress();
+  const userId = useUserStore(s => s.userId) ?? 'local';
+  const allProgress = getAllPatternProgress(userId);
   const progressMap = new Map(allProgress.map(p => [p.patternId, p]));
 
   const getStatus = useCallback(
@@ -22,9 +24,9 @@ export function usePatternProgress() {
 
   const recordPractice = useCallback(
     (patternId: number, wasCorrect: boolean, responseTimeMs: number): void => {
-      updatePatternProgress(patternId, wasCorrect, responseTimeMs);
+      updatePatternProgress(userId, patternId, wasCorrect, responseTimeMs);
     },
-    []
+    [userId]
   );
 
   const getMasteredCount = useCallback((): number => {

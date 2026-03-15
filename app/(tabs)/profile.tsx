@@ -24,10 +24,11 @@ function getCefrLevel(masteredCount: number): string {
 
 export default function ProfileScreen() {
   const user = useUserStore(s => s.user);
+  const userId = useUserStore(s => s.userId) ?? 'local';
   const signOut = useUserStore(s => s.signOut);
 
-  const progressArray = useMemo(() => getAllPatternProgress(), []);
-  const sessions = useMemo(() => getRecentSessions(100), []);
+  const progressArray = useMemo(() => getAllPatternProgress(userId), [userId]);
+  const sessions = useMemo(() => getRecentSessions(userId, 100), [userId]);
   const streakDays = streak.get();
   const [vocabCount, setVocabCount] = useState(0);
 

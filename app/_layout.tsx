@@ -23,7 +23,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       initLocalDB();
-      seedCurriculum();
+      seedCurriculum('local');
     } catch (e) {
       console.error('DB init error:', e);
     }

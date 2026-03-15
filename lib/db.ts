@@ -254,7 +254,7 @@ export function getAllExercises(): Exercise[] {
   return rows.map(rowToExercise);
 }
 
-export function getPatternProgress(patternId: number): UserPatternProgress | null {
+export function getPatternProgress(userId: string, patternId: number): UserPatternProgress | null {
   const row = getDb().getFirstSync<{
     pattern_id: number; status: string; times_practiced: number;
     avg_response_time_ms: number; avg_accuracy: number;
@@ -273,7 +273,7 @@ export function getPatternProgress(patternId: number): UserPatternProgress | nul
   };
 }
 
-export function getAllPatternProgress(): UserPatternProgress[] {
+export function getAllPatternProgress(userId: string): UserPatternProgress[] {
   const rows = getDb().getAllSync<{
     pattern_id: number; status: string; times_practiced: number;
     avg_response_time_ms: number; avg_accuracy: number;
@@ -292,6 +292,7 @@ export function getAllPatternProgress(): UserPatternProgress[] {
 }
 
 export function updatePatternProgress(
+  userId: string,
   patternId: number,
   wasCorrect: boolean,
   responseTimeMs: number
@@ -368,8 +369,8 @@ export function updatePatternProgress(
       newStatus = 'practicing';
       db.runSync(
         `INSERT INTO demotion_log (user_id, pattern_id, demoted_at, rolling_accuracy)
-         VALUES ('local', ?, datetime('now'), ?)`,
-        [patternId, rollingAccuracy]
+         VALUES (?, ?, datetime('now'), ?)`,
+        [userId, patternId, rollingAccuracy]
       );
     }
   }
@@ -390,7 +391,7 @@ export function updatePatternProgress(
   );
 }
 
-export function saveSession(params: {
+export function saveSession(userId: string, params: {
   patternsPracticed: number[];
   newPatternsIntroduced: number[];
   exercisesCompleted: number;
@@ -404,8 +405,9 @@ export function saveSession(params: {
     `INSERT INTO sessions
      (user_id, started_at, completed_at, patterns_practiced, new_patterns_introduced,
       exercises_completed, exercises_correct, avg_response_time_ms, session_type, duration_seconds)
-     VALUES ('local', ?, datetime('now'), ?, ?, ?, ?, ?, ?, ?)`,
+     VALUES (?, ?, datetime('now'), ?, ?, ?, ?, ?, ?, ?)`,
     [
+      userId,
       params.startedAt,
       JSON.stringify(params.patternsPracticed),
       JSON.stringify(params.newPatternsIntroduced),
@@ -436,15 +438,15 @@ export function saveExerciseAttempt(attempt: Omit<ExerciseAttempt, 'id' | 'creat
   );
 }
 
-export function getRecentSessions(limit = 5) {
+export function getRecentSessions(userId: string, limit = 5) {
   return getDb().getAllSync<{
     id: number; started_at: string; completed_at: string | null;
     exercises_completed: number; exercises_correct: number;
     session_type: string; duration_seconds: number;
   }>(
     `SELECT id, started_at, completed_at, exercises_completed, exercises_correct, session_type, duration_seconds
-     FROM sessions ORDER BY id DESC LIMIT ?`,
-    [limit]
+     FROM sessions WHERE user_id = ? ORDER BY id DESC LIMIT ?`,
+    [userId, limit]
   );
 }
 
@@ -487,7 +489,7 @@ export function updateSRS(userId: string, patternId: number, verdict: keyof type
 
 // ─── Due Exercises for Review ─────────────────────────────────────────────────
 
-export function getDueExercisesForReview(limit: number = 20): Exercise[] {
+export function getDueExercisesForReview(userId: string, limit: number = 20): Exercise[] {
   const now = Date.now();
   // Get exercises belonging to patterns that are due for SRS review
   const rows = getDb().getAllSync<ExerciseRow>(
@@ -627,4 +629,14 @@ export function getDueVocabularyCount(): Promise<number> {
     [now]
   );
   return Promise.resolve(row?.count ?? 0);
+}
+
+// ─── Logout Cleanup ───────────────────────────────────────────────────────────
+
+export async function clearUserData(db: SQLite.SQLiteDatabase, userId: string): Promise<void> {
+  await db.runAsync('DELETE FROM pattern_progress WHERE user_id = ?', [userId]);
+  await db.runAsync('DELETE FROM exercise_attempts WHERE user_id = ?', [userId]);
+  await db.runAsync('DELETE FROM sessions WHERE user_id = ?', [userId]);
+  await db.runAsync('DELETE FROM patterns WHERE user_id = ?', [userId]);
+  await db.runAsync('DELETE FROM demotion_log WHERE user_id = ?', [userId]);
 }

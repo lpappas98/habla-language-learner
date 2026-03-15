@@ -9,6 +9,7 @@ import Animated, {
 import * as Haptics from 'expo-haptics';
 import { useSessionStore, selectSessionScore } from '../../store/sessionStore';
 import { getPattern, saveSession } from '../../lib/db';
+import { useUserStore } from '../../store/userStore';
 import { theme } from '../../lib/theme';
 import { useStreak } from '../../hooks/useStreak';
 import { StreakCounter } from '../../components/common/StreakCounter';
@@ -40,6 +41,7 @@ function AnimatedStar({ index, filled }: { index: number; filled: boolean }) {
 
 export default function SummaryScreen() {
   const router = useRouter();
+  const userId = useUserStore(s => s.userId) ?? 'local';
   const { attempts, currentPatternId, startTime, resetSession } = useSessionStore();
   const score = useSessionStore(selectSessionScore);
   const { checkAndUpdateStreak } = useStreak();
@@ -58,7 +60,7 @@ export default function SummaryScreen() {
 
     // Save session to DB
     if (startTime) {
-      saveSession({
+      saveSession(userId, {
         patternsPracticed: currentPatternId ? [currentPatternId] : [],
         newPatternsIntroduced: [],
         exercisesCompleted: score.total,

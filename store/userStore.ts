@@ -3,6 +3,7 @@ import { User } from '../types';
 
 interface UserState {
   user: User | null;
+  userId: string;
   isLoading: boolean;
   isAuthenticated: boolean;
 
@@ -15,12 +16,14 @@ interface UserState {
 
 export const useUserStore = create<UserState>((set) => ({
   user: null,
+  userId: 'local',
   isLoading: true,
   isAuthenticated: false,
 
   setUser: (user) =>
     set({
       user,
+      userId: user?.id ?? 'local',
       isAuthenticated: user !== null,
       isLoading: false,
     }),
@@ -40,6 +43,7 @@ export const useUserStore = create<UserState>((set) => ({
   signOut: () =>
     set({
       user: null,
+      userId: 'local',
       isAuthenticated: false,
       isLoading: false,
     }),

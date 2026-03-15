@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSessionStore } from '../../store/sessionStore';
+import { useUserStore } from '../../store/userStore';
 import { getPatterns, getExercisesForPattern, getAllPatternProgress } from '../../lib/db';
 
 // Sub-screens (rendered in-place via phase state machine)
@@ -13,12 +14,13 @@ import SummaryScreen from './summary';
 export default function SessionOrchestrator() {
   const { sessionId: patternIdParam } = useLocalSearchParams<{ sessionId: string }>();
   const { phase, startSession, setExercises } = useSessionStore();
+  const userId = useUserStore(s => s.userId) ?? 'local';
   const router = useRouter();
 
   useEffect(() => {
     // Resolve which pattern to study
     const patterns = getPatterns();
-    const progress = getAllPatternProgress();
+    const progress = getAllPatternProgress(userId);
 
     let pattern = patterns.find(p => {
       // If a specific pattern ID was passed in the route, use it
