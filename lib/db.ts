@@ -1,5 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 import { Exercise, Pattern, UserPatternProgress, ExerciseAttempt, PatternStatus } from '../types';
+import { computeSM2, SRS_QUALITY } from './srs';
+import { SRS_EASE_DEFAULT } from './constants';
 
 // Lazy-initialize so openDatabaseSync() is never called at module load time.
 // expo-sqlite requires the native bridge to be fully ready first.
@@ -412,7 +414,7 @@ export function getDuePatternCount(userId: string): Promise<number> {
   return Promise.resolve(row?.count ?? 0);
 }
 
-export function updateSRS(userId: string, patternId: number, accuracy: number): Promise<void> {
+export function updateSRS(userId: string, patternId: number, verdict: keyof typeof SRS_QUALITY): Promise<void> {
   const existing = getDb().getFirstSync<{
     srs_interval: number | null; srs_ease: number | null;
   }>(
@@ -420,19 +422,11 @@ export function updateSRS(userId: string, patternId: number, accuracy: number): 
     [patternId]
   );
 
-  const currentInterval = existing?.srs_interval ?? 1;
-  const currentEase = existing?.srs_ease ?? 2.5;
+  const currentInterval = existing?.srs_interval ?? 0;
+  const currentEase = existing?.srs_ease ?? SRS_EASE_DEFAULT;
+  const quality = SRS_QUALITY[verdict];
 
-  let newInterval: number;
-  let newEase: number;
-
-  if (accuracy >= 0.8) {
-    newInterval = Math.min(Math.round(currentInterval * currentEase), 90);
-    newEase = Math.min(Math.max(currentEase + 0.1, 1.3), 2.5);
-  } else {
-    newInterval = 1;
-    newEase = Math.min(Math.max(currentEase - 0.1, 1.3), 2.5);
-  }
+  const { newEase, newInterval } = computeSM2({ ease: currentEase, interval: currentInterval, quality });
 
   const nextDueAt = Date.now() + newInterval * 86400000;
 
@@ -456,7 +450,7 @@ export function getDueExercisesForReview(limit: number = 20): Exercise[] {
      INNER JOIN user_pattern_progress p ON e.pattern_id = p.pattern_id
      WHERE p.status IN ('practicing', 'mastered')
        AND (p.next_due_at IS NULL OR p.next_due_at <= ?)
-     ORDER BY RANDOM()
+     ORDER BY p.next_due_at ASC
      LIMIT ?`,
     [now, limit]
   );
