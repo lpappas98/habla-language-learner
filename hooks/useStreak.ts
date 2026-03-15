@@ -1,16 +1,7 @@
 import { useCallback } from 'react';
 import { streak } from '../lib/mmkv';
 import { useUserStore } from '../store/userStore';
-
-function toDateString(date: Date): string {
-  return date.toISOString().split('T')[0];
-}
-
-function daysBetween(a: string, b: string): number {
-  const da = new Date(a).getTime();
-  const db = new Date(b).getTime();
-  return Math.round(Math.abs(da - db) / (1000 * 60 * 60 * 24));
-}
+import { toLocalDateString, daysBetweenDateStrings } from '../lib/utils';
 
 export interface UseStreakReturn {
   currentStreak: number;
@@ -21,7 +12,7 @@ export function useStreak(): UseStreakReturn {
   const updateStreak = useUserStore(s => s.updateStreak);
 
   const checkAndUpdateStreak = useCallback(() => {
-    const today = toDateString(new Date());
+    const today = toLocalDateString(new Date());
     const lastDate = streak.getLastDate();
     const currentCount = streak.get();
 
@@ -38,7 +29,7 @@ export function useStreak(): UseStreakReturn {
       return { newStreak: currentCount, wasUpdated: false, isBroken: false };
     }
 
-    const diff = daysBetween(lastDate, today);
+    const diff = daysBetweenDateStrings(lastDate, today);
 
     if (diff === 1) {
       // Yesterday — streak continues
