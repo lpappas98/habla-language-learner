@@ -1,11 +1,12 @@
 import { useCallback } from 'react';
-import { getAllPatternProgress, updatePatternProgress } from '../lib/db';
+import { updatePatternProgress } from '../lib/db';
 import { useUserStore } from '../store/userStore';
 import { PatternStatus, UserPatternProgress } from '../types';
+import { useAllProgress } from './useAllProgress';
 
 export function usePatternProgress() {
   const userId = useUserStore(s => s.userId) ?? 'local';
-  const allProgress = getAllPatternProgress(userId);
+  const { data: allProgress = [] } = useAllProgress();
   const progressMap = new Map(allProgress.map(p => [p.patternId, p]));
 
   const getStatus = useCallback(

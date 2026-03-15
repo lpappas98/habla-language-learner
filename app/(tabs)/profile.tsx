@@ -3,11 +3,12 @@ import { View, Text, ScrollView, Pressable, Alert, Switch, SafeAreaView } from '
 import { Ionicons } from '@expo/vector-icons';
 import { useUserStore } from '../../store/userStore';
 import { supabase } from '../../lib/supabase';
-import { getAllPatternProgress, getRecentSessions, getVocabularyCount } from '../../lib/db';
+import { getRecentSessions, getVocabularyCount } from '../../lib/db';
 import { streak, getSettings, setSettings } from '../../lib/mmkv';
 import { LevelBadge } from '../../components/curriculum/LevelBadge';
 import { ProgressBar } from '../../components/common/ProgressBar';
 import { theme } from '../../lib/theme';
+import { useAllProgress } from '../../hooks/useAllProgress';
 
 // Tier totals (hardcoded — update when tier 2 data ships)
 const TIER1_TOTAL = 15;
@@ -27,7 +28,7 @@ export default function ProfileScreen() {
   const userId = useUserStore(s => s.userId) ?? 'local';
   const signOut = useUserStore(s => s.signOut);
 
-  const progressArray = useMemo(() => getAllPatternProgress(userId), [userId]);
+  const { data: progressArray = [] } = useAllProgress();
   const sessions = useMemo(() => getRecentSessions(userId, 100), [userId]);
   const streakDays = streak.get();
   const [vocabCount, setVocabCount] = useState(0);

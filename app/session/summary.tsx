@@ -7,6 +7,7 @@ import Animated, {
   withDelay, withSpring, withSequence, withTiming,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
+import { useQueryClient } from '@tanstack/react-query';
 import { useSessionStore, selectSessionScore } from '../../store/sessionStore';
 import { getPattern, saveSession } from '../../lib/db';
 import { useUserStore } from '../../store/userStore';
@@ -14,6 +15,7 @@ import { theme } from '../../lib/theme';
 import { useStreak } from '../../hooks/useStreak';
 import { StreakCounter } from '../../components/common/StreakCounter';
 import { ProgressBar } from '../../components/common/ProgressBar';
+import { QUERY_KEYS } from '../../lib/queryKeys';
 
 function AnimatedStar({ index, filled }: { index: number; filled: boolean }) {
   const scale = useSharedValue(0);
@@ -45,6 +47,7 @@ export default function SummaryScreen() {
   const { attempts, currentPatternId, startTime, resetSession } = useSessionStore();
   const score = useSessionStore(selectSessionScore);
   const { checkAndUpdateStreak } = useStreak();
+  const queryClient = useQueryClient();
 
   const pattern = currentPatternId ? getPattern(currentPatternId) : null;
   const accuracy = score.percentage;
@@ -73,6 +76,8 @@ export default function SummaryScreen() {
         startedAt: new Date(startTime).toISOString(),
       });
     }
+
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.progress });
 
     const { wasUpdated } = checkAndUpdateStreak();
 

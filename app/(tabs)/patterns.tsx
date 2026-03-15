@@ -1,20 +1,19 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, Modal, Pressable, ScrollView, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { getPatterns, getAllPatternProgress } from '../../lib/db';
-import { useUserStore } from '../../store/userStore';
 import { PatternTree } from '../../components/curriculum/PatternTree';
 import { PatternCard } from '../../components/session/PatternCard';
 import { Pattern, PatternStatus } from '../../types';
 import { tier2Patterns } from '../../data/curriculum/tier2';
 import { theme } from '../../lib/theme';
+import { usePatterns } from '../../hooks/usePatterns';
+import { useAllProgress } from '../../hooks/useAllProgress';
 
 const TIER1_COUNT = 15;
 
 export default function PatternsScreen() {
-  const userId = useUserStore(s => s.userId) ?? 'local';
-  const allPatterns = useMemo(() => getPatterns(), []);
-  const progressArray = useMemo(() => getAllPatternProgress(userId), [userId]);
+  const { data: allPatterns = [] } = usePatterns();
+  const { data: progressArray = [] } = useAllProgress();
   const [selectedPattern, setSelectedPattern] = useState<Pattern | null>(null);
   const [selectedTier, setSelectedTier] = useState<1 | 2>(1);
   const router = useRouter();

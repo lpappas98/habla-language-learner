@@ -5,9 +5,11 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useUserStore } from '../../store/userStore';
 import { StreakCounter } from '../../components/common/StreakCounter';
-import { getPatterns, getRecentSessions, getAllPatternProgress, getDuePatternCount, getDueVocabularyCount } from '../../lib/db';
+import { getRecentSessions, getDuePatternCount, getDueVocabularyCount } from '../../lib/db';
 import { streak } from '../../lib/mmkv';
 import { theme } from '../../lib/theme';
+import { usePatterns } from '../../hooks/usePatterns';
+import { useAllProgress } from '../../hooks/useAllProgress';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -17,9 +19,9 @@ export default function HomeScreen() {
   const [dueCount, setDueCount] = useState(0);
   const [dueVocabCount, setDueVocabCount] = useState(0);
 
-  const patterns = useMemo(() => getPatterns(), []);
+  const { data: patterns = [] } = usePatterns();
   const recentSessions = useMemo(() => getRecentSessions(userId, 3), [userId]);
-  const allProgress = useMemo(() => getAllPatternProgress(userId), [userId]);
+  const { data: allProgress = [] } = useAllProgress();
 
   useEffect(() => {
     getDuePatternCount(userId).then(setDueCount);
