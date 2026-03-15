@@ -90,23 +90,26 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isAuthenticated || isLoading) return;
     const db = getDb();
-    findIncompleteSession(db, useUserStore.getState().userId).then(incomplete => {
-      if (incomplete) {
-        Alert.alert(
-          'Unfinished Session',
-          'You have an unfinished practice session. Start fresh?',
-          [
-            {
-              text: 'Start Fresh',
-              onPress: () =>
-                finalizeSession(db, useUserStore.getState().userId, incomplete.id, true).catch(
-                  e => console.warn('Failed to finalize session:', e)
-                ),
-            },
-          ]
-        );
-      }
-    }).catch(e => console.warn('Failed to check incomplete session:', e));
+    const userId = useUserStore.getState().userId;
+    if (userId) {
+      findIncompleteSession(db, userId).then(incomplete => {
+        if (incomplete) {
+          Alert.alert(
+            'Unfinished Session',
+            'You have an unfinished practice session. Start fresh?',
+            [
+              {
+                text: 'Start Fresh',
+                onPress: () =>
+                  finalizeSession(db, userId, incomplete.id, true).catch(
+                    e => console.warn('Failed to finalize session:', e)
+                  ),
+              },
+            ]
+          );
+        }
+      }).catch(e => console.warn('Failed to check incomplete session:', e));
+    }
   }, [isAuthenticated]);
 
   return <>{children}</>;
