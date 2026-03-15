@@ -1,8 +1,9 @@
 import * as SQLite from 'expo-sqlite';
-import { Exercise, Pattern, UserPatternProgress, ExerciseAttempt, PatternStatus } from '../types';
+import { Exercise, Pattern, UserPatternProgress, ExerciseAttempt, PatternStatus, ErrorType } from '../types';
 import { computeSM2, SRS_QUALITY } from './srs';
 import { SRS_EASE_DEFAULT } from './constants';
 import { computeRollingAccuracy, shouldDemote } from './mastery';
+import { MatchResult } from './fuzzyMatch';
 
 // Lazy-initialize so openDatabaseSync() is never called at module load time.
 // expo-sqlite requires the native bridge to be fully ready first.
@@ -134,6 +135,34 @@ export function initLocalDB(): void {
   } catch (_) {}
   try {
     db.execSync(`ALTER TABLE user_pattern_progress ADD COLUMN last_practiced_date TEXT`);
+  } catch (_) {}
+
+  // exercise_attempts extended columns
+  try {
+    db.execSync(`ALTER TABLE exercise_attempts ADD COLUMN error_type TEXT`);
+  } catch (_) {}
+  try {
+    db.execSync(`ALTER TABLE exercise_attempts ADD COLUMN source TEXT NOT NULL DEFAULT 'construction'`);
+  } catch (_) {}
+  try {
+    db.execSync(`ALTER TABLE exercise_attempts ADD COLUMN user_id TEXT`);
+  } catch (_) {}
+  try {
+    db.execSync(`ALTER TABLE exercise_attempts ADD COLUMN pattern_id INTEGER`);
+  } catch (_) {}
+  try {
+    db.execSync(`ALTER TABLE exercise_attempts ADD COLUMN verdict TEXT`);
+  } catch (_) {}
+  try {
+    db.execSync(`ALTER TABLE exercise_attempts ADD COLUMN hint_level_used INTEGER`);
+  } catch (_) {}
+
+  // sessions completion columns
+  try {
+    db.execSync(`ALTER TABLE sessions ADD COLUMN is_complete INTEGER NOT NULL DEFAULT 0`);
+  } catch (_) {}
+  try {
+    db.execSync(`ALTER TABLE sessions ADD COLUMN abandoned INTEGER NOT NULL DEFAULT 0`);
   } catch (_) {}
 
   // Schema version migration: recreate exercises table with updated CHECK constraint
@@ -630,6 +659,58 @@ export function getDueVocabularyCount(): Promise<number> {
   );
   return Promise.resolve(row?.count ?? 0);
 }
+
+// ─── Incremental Session Persistence ──────────────────────────────────────────
+
+export const recordAttemptIncremental = async (
+  db: SQLite.SQLiteDatabase,
+  userId: string,
+  attempt: {
+    sessionId: number;
+    patternId: number;
+    exerciseId: number;
+    verdict: MatchResult;
+    responseTimeMs: number;
+    hintLevelUsed: number;
+    errorType?: ErrorType;
+    source?: 'construction' | 'conversation';
+  }
+): Promise<void> => {
+  await db.runAsync(
+    `INSERT INTO exercise_attempts
+     (user_id, session_id, pattern_id, exercise_id, verdict, response_time_ms,
+      hint_level_used, error_type, source, user_response_text, was_correct, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, '', 0, datetime('now'))`,
+    [
+      userId, attempt.sessionId, attempt.patternId, attempt.exerciseId,
+      attempt.verdict, attempt.responseTimeMs, attempt.hintLevelUsed,
+      attempt.errorType ?? null, attempt.source ?? 'construction',
+    ]
+  );
+};
+
+export const finalizeSession = async (
+  db: SQLite.SQLiteDatabase,
+  userId: string,
+  sessionId: number,
+  abandoned = false
+): Promise<void> => {
+  await db.runAsync(
+    `UPDATE sessions SET is_complete = 1, abandoned = ?
+     WHERE user_id = ? AND id = ?`,
+    [abandoned ? 1 : 0, userId, sessionId]
+  );
+};
+
+export const findIncompleteSession = async (
+  db: SQLite.SQLiteDatabase,
+  userId: string
+): Promise<{ id: number } | null> => {
+  return db.getFirstAsync<{ id: number }>(
+    `SELECT id FROM sessions WHERE user_id = ? AND is_complete = 0 ORDER BY started_at DESC LIMIT 1`,
+    [userId]
+  );
+};
 
 // ─── Logout Cleanup ───────────────────────────────────────────────────────────
 

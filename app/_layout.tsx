@@ -1,9 +1,10 @@
 import '../global.css';
 import React, { useEffect } from 'react';
+import { Alert } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { initLocalDB } from '../lib/db';
+import { initLocalDB, findIncompleteSession, finalizeSession, getDb } from '../lib/db';
 import { seedCurriculum } from '../data/seed';
 import { supabase } from '../lib/supabase';
 import { useUserStore } from '../store/userStore';
@@ -84,6 +85,29 @@ function AuthGate({ children }: { children: React.ReactNode }) {
       router.replace('/(tabs)');
     }
   }, [isAuthenticated, isLoading, segments]);
+
+  // Incomplete session detection — runs once when user becomes authenticated
+  useEffect(() => {
+    if (!isAuthenticated || isLoading) return;
+    const db = getDb();
+    findIncompleteSession(db, useUserStore.getState().userId).then(incomplete => {
+      if (incomplete) {
+        Alert.alert(
+          'Unfinished Session',
+          'You have an unfinished practice session. Start fresh?',
+          [
+            {
+              text: 'Start Fresh',
+              onPress: () =>
+                finalizeSession(db, useUserStore.getState().userId, incomplete.id, true).catch(
+                  e => console.warn('Failed to finalize session:', e)
+                ),
+            },
+          ]
+        );
+      }
+    }).catch(e => console.warn('Failed to check incomplete session:', e));
+  }, [isAuthenticated]);
 
   return <>{children}</>;
 }

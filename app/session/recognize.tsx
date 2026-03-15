@@ -4,10 +4,14 @@ import { useRouter } from 'expo-router';
 import Animated, { FadeInDown, useSharedValue, useAnimatedStyle, withSequence, withTiming } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useSessionStore } from '../../store/sessionStore';
+import { recordAttemptIncremental, getDb } from '../../lib/db';
+import { useUserStore } from '../../store/userStore';
 
 export default function RecognizeScreen() {
   const router = useRouter();
   const recognizeExercises = useSessionStore(s => s.recognizeExercises);
+  const sessionId = useSessionStore(s => s.sessionId);
+  const userId = useUserStore(s => s.userId) ?? 'local';
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -24,6 +28,17 @@ export default function RecognizeScreen() {
     setSelectedIndex(index);
     const isCorrect = index === correctIndex;
     if (isCorrect) setScore(s => s + 1);
+
+    // Fire-and-forget DB write — errors are logged but not surfaced to user
+    recordAttemptIncremental(getDb(), userId, {
+      sessionId: sessionId ?? 0,
+      patternId: exercise.patternId,
+      exerciseId: exercise.id,
+      verdict: isCorrect ? 'correct' : 'incorrect',
+      responseTimeMs: 0,
+      hintLevelUsed: 0,
+      source: 'construction',
+    }).catch(e => console.warn('Failed to persist attempt:', e));
 
     timeoutRef.current = setTimeout(() => {
       setSelectedIndex(null);

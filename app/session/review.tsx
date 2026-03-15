@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { getDueExercisesForReview, updatePatternProgress } from '../../lib/db';
+import { getDueExercisesForReview, updatePatternProgress, recordAttemptIncremental, getDb } from '../../lib/db';
 import { useUserStore } from '../../store/userStore';
 import { evaluateResponse } from '../../lib/fuzzyMatch';
 import { Exercise } from '../../types';
@@ -73,7 +73,20 @@ export default function ReviewScreen() {
     } else {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
-    updatePatternProgress(userId, exercise.patternId, isCorrect, Date.now() - startTimeRef.current);
+    const recognizeResponseTimeMs = Date.now() - startTimeRef.current;
+    updatePatternProgress(userId, exercise.patternId, isCorrect, recognizeResponseTimeMs);
+
+    // Fire-and-forget DB write — errors are logged but not surfaced to user
+    recordAttemptIncremental(getDb(), userId, {
+      sessionId: 0,
+      patternId: exercise.patternId,
+      exerciseId: exercise.id,
+      verdict: isCorrect ? 'correct' : 'incorrect',
+      responseTimeMs: recognizeResponseTimeMs,
+      hintLevelUsed: 0,
+      source: 'construction',
+    }).catch(e => console.warn('Failed to persist attempt:', e));
+
     selectTimerRef.current = setTimeout(() => {
       advanceToNext(isCorrect);
     }, 900);
@@ -98,6 +111,17 @@ export default function ReviewScreen() {
     }
 
     updatePatternProgress(userId, exercise.patternId, isCorrect, responseTimeMs);
+
+    // Fire-and-forget DB write — errors are logged but not surfaced to user
+    recordAttemptIncremental(getDb(), userId, {
+      sessionId: 0,
+      patternId: exercise.patternId,
+      exerciseId: exercise.id,
+      verdict: matchResult,
+      responseTimeMs,
+      hintLevelUsed: 0,
+      source: 'construction',
+    }).catch(e => console.warn('Failed to persist attempt:', e));
 
     const feedbackMessages: Record<string, string> = {
       correct: '¡Perfecto!',

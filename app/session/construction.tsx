@@ -9,7 +9,7 @@ import { FeedbackOverlay } from '../../components/session/FeedbackOverlay';
 import { ConstructionPrompt } from '../../components/session/ConstructionPrompt';
 import { ProgressRing } from '../../components/session/ProgressRing';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
-import { getPattern, updatePatternProgress } from '../../lib/db';
+import { getPattern, updatePatternProgress, recordAttemptIncremental, getDb } from '../../lib/db';
 import { useUserStore } from '../../store/userStore';
 import { MatchResult, evaluateResponse } from '../../lib/fuzzyMatch';
 import { theme } from '../../lib/theme';
@@ -103,6 +103,17 @@ export default function ConstructionScreen() {
         aiFeedback: null,
       });
 
+      // Fire-and-forget DB write — errors are logged but not surfaced to user
+      recordAttemptIncremental(getDb(), userId, {
+        sessionId: sessionId ?? 0,
+        patternId: exercise.patternId,
+        exerciseId: exercise.id,
+        verdict: matchResult,
+        responseTimeMs,
+        hintLevelUsed: hintLevel,
+        source: 'construction',
+      }).catch(e => console.warn('Failed to persist attempt:', e));
+
       // Update pattern progress in local DB
       updatePatternProgress(userId, exercise.patternId, isCorrect, responseTimeMs);
 
@@ -135,15 +146,28 @@ export default function ConstructionScreen() {
   function handleSkip() {
     if (!exercise) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const skipResponseTimeMs = Date.now() - startTimeRef.current;
     recordAttempt({
       sessionId: sessionId ?? 0,
       exerciseId: exercise.id,
       userResponseText: '[skipped]',
       wasCorrect: false,
-      responseTimeMs: Date.now() - startTimeRef.current,
+      responseTimeMs: skipResponseTimeMs,
       hintUsed: hintLevel > 0,
       aiFeedback: null,
     });
+
+    // Fire-and-forget DB write — errors are logged but not surfaced to user
+    recordAttemptIncremental(getDb(), userId, {
+      sessionId: sessionId ?? 0,
+      patternId: exercise.patternId,
+      exerciseId: exercise.id,
+      verdict: 'incorrect',
+      responseTimeMs: skipResponseTimeMs,
+      hintLevelUsed: hintLevel,
+      source: 'construction',
+    }).catch(e => console.warn('Failed to persist attempt:', e));
+
     advanceExercise();
   }
 
@@ -195,6 +219,17 @@ export default function ConstructionScreen() {
       hintUsed: hintLevel > 0,
       aiFeedback: null,
     });
+
+    // Fire-and-forget DB write — errors are logged but not surfaced to user
+    recordAttemptIncremental(getDb(), userId, {
+      sessionId: sessionId ?? 0,
+      patternId: exercise.patternId,
+      exerciseId: exercise.id,
+      verdict: matchResult,
+      responseTimeMs,
+      hintLevelUsed: hintLevel,
+      source: 'construction',
+    }).catch(e => console.warn('Failed to persist attempt:', e));
 
     updatePatternProgress(exercise.patternId, isCorrect, responseTimeMs);
 
