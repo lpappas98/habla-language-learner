@@ -7,7 +7,7 @@ export const useAllProgress = () => {
   const userId = useUserStore(s => s.userId) ?? '';
 
   return useQuery({
-    queryKey: QUERY_KEYS.progress,
+    queryKey: [...QUERY_KEYS.progress, userId],
     queryFn: () => getAllPatternProgress(userId),
     enabled: !!userId,
     staleTime: 0,
