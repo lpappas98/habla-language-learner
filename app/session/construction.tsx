@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, Pressable, SafeAreaView, TextInput } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,10 +10,12 @@ import { ConstructionPrompt } from '../../components/session/ConstructionPrompt'
 import { ProgressRing } from '../../components/session/ProgressRing';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 import { getPattern, updatePatternProgress } from '../../lib/db';
+import { useUserStore } from '../../store/userStore';
 import { MatchResult, evaluateResponse } from '../../lib/fuzzyMatch';
 import { theme } from '../../lib/theme';
 
 export default function ConstructionScreen() {
+  const userId = useUserStore(s => s.userId) ?? 'local';
   const {
     currentPatternId,
     hintLevel,
@@ -56,6 +58,11 @@ export default function ConstructionScreen() {
   const [typedText, setTypedText] = useState('');
 
   const startTimeRef = useRef(Date.now());
+
+  useEffect(() => {
+    startTimeRef.current = Date.now(); // Reset timer when exercise loads
+  }, [constructIndex]);
+
   const pattern = currentPatternId ? getPattern(currentPatternId) : null;
 
   const handleSpeechResult = useCallback(
@@ -97,7 +104,7 @@ export default function ConstructionScreen() {
       });
 
       // Update pattern progress in local DB
-      updatePatternProgress(exercise.patternId, isCorrect, responseTimeMs);
+      updatePatternProgress(userId, exercise.patternId, isCorrect, responseTimeMs);
 
       setLastResult({
         correct: isCorrect,
@@ -106,8 +113,6 @@ export default function ConstructionScreen() {
         userResponse: transcript,
       });
       setFeedbackVisible(true);
-
-      startTimeRef.current = Date.now();
     },
     [exercise, hintLevel, recordAttempt, sessionId]
   );
@@ -200,7 +205,6 @@ export default function ConstructionScreen() {
       userResponse: trimmed,
     });
     setFeedbackVisible(true);
-    startTimeRef.current = Date.now();
   }
 
   function switchToTyping() {
