@@ -12,6 +12,8 @@ import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 import { getPattern, updatePatternProgress, recordAttemptIncremental, getDb } from '../../lib/db';
 import { useUserStore } from '../../store/userStore';
 import { MatchResult, evaluateResponse } from '../../lib/fuzzyMatch';
+import { useAIEvaluation } from '../../hooks/useAIEvaluation';
+import { ErrorType } from '../../types';
 import { getDifficultyConfig } from '../../lib/adaptiveDifficulty';
 import { theme } from '../../lib/theme';
 import { FEEDBACK_MESSAGES } from '../../lib/constants';
@@ -56,7 +58,10 @@ export default function ConstructionScreen() {
     correctAnswer: string;
     feedback: string;
     userResponse: string;
+    aiExplanation?: string;
   } | null>(null);
+
+  const { evaluate } = useAIEvaluation();
 
   // Text input mode
   const [isTypingMode, setIsTypingMode] = useState(false);
@@ -80,7 +85,7 @@ export default function ConstructionScreen() {
   const pattern = currentPatternId ? getPattern(currentPatternId) : null;
 
   const handleSpeechResult = useCallback(
-    ({
+    async ({
       transcript,
       matchResult,
       bestMatch,
@@ -108,14 +113,37 @@ export default function ConstructionScreen() {
         incorrect: pick(FEEDBACK_MESSAGES.incorrect),
       };
 
+      let finalVerdict: MatchResult = matchResult;
+      let aiExplanation: string | undefined;
+      let aiErrorType: ErrorType | undefined;
+
+      if (matchResult !== 'correct') {
+        const aiResult = await evaluate({
+          pattern_id: exercise.patternId,
+          pattern_description: pattern?.explanation ?? '',
+          expected_answer_es: exercise.expectedEs,
+          acceptable_alternatives: exercise.acceptableEs ?? [],
+          user_answer: transcript,
+          hint_level_used: hintLevel,
+        });
+
+        if (aiResult) {
+          finalVerdict = aiResult.verdict as MatchResult;
+          aiExplanation = aiResult.explanation_en;
+          aiErrorType = aiResult.error_type as ErrorType;
+        }
+      }
+
+      const finalIsCorrect = finalVerdict === 'correct' || finalVerdict === 'close';
+
       recordAttempt({
         sessionId: sessionId ?? 0,
         exerciseId: exercise.id,
         userResponseText: transcript,
-        wasCorrect: isCorrect,
+        wasCorrect: finalIsCorrect,
         responseTimeMs,
         hintUsed: hintLevel > 0,
-        aiFeedback: null,
+        aiFeedback: aiExplanation ?? null,
       });
 
       // Fire-and-forget DB write — errors are logged but not surfaced to user
@@ -123,24 +151,26 @@ export default function ConstructionScreen() {
         sessionId: sessionId ?? 0,
         patternId: exercise.patternId,
         exerciseId: exercise.id,
-        verdict: matchResult,
+        verdict: finalVerdict,
         responseTimeMs,
         hintLevelUsed: hintLevel,
+        errorType: aiErrorType,
         source: 'construction',
       }).catch(e => console.warn('Failed to persist attempt:', e));
 
       // Update pattern progress in local DB
-      updatePatternProgress(userId, exercise.patternId, isCorrect, responseTimeMs);
+      updatePatternProgress(userId, exercise.patternId, finalIsCorrect, responseTimeMs);
 
       setLastResult({
-        correct: isCorrect,
+        correct: finalIsCorrect,
         correctAnswer: bestMatch,
-        feedback: feedbackMessages[matchResult],
+        feedback: feedbackMessages[finalVerdict] ?? feedbackMessages[matchResult],
         userResponse: transcript,
+        aiExplanation,
       });
       setFeedbackVisible(true);
     },
-    [exercise, hintLevel, recordAttempt, sessionId]
+    [exercise, hintLevel, pattern, recordAttempt, sessionId, evaluate]
   );
 
   const { isListening, transcript, startListening, stopListening } = useSpeechRecognition({
@@ -198,7 +228,7 @@ export default function ConstructionScreen() {
     }
   }
 
-  function handleTypeSubmit() {
+  async function handleTypeSubmit() {
     if (!exercise || !typedText.trim()) return;
 
     const trimmed = typedText.trim();
@@ -227,14 +257,37 @@ export default function ConstructionScreen() {
       incorrect: pick(FEEDBACK_MESSAGES.incorrect),
     };
 
+    let finalVerdict: MatchResult = matchResult;
+    let aiExplanation: string | undefined;
+    let aiErrorType: ErrorType | undefined;
+
+    if (matchResult !== 'correct') {
+      const aiResult = await evaluate({
+        pattern_id: exercise.patternId,
+        pattern_description: pattern?.explanation ?? '',
+        expected_answer_es: exercise.expectedEs,
+        acceptable_alternatives: exercise.acceptableEs ?? [],
+        user_answer: trimmed,
+        hint_level_used: hintLevel,
+      });
+
+      if (aiResult) {
+        finalVerdict = aiResult.verdict as MatchResult;
+        aiExplanation = aiResult.explanation_en;
+        aiErrorType = aiResult.error_type as ErrorType;
+      }
+    }
+
+    const finalIsCorrect = finalVerdict === 'correct' || finalVerdict === 'close';
+
     recordAttempt({
       sessionId: sessionId ?? 0,
       exerciseId: exercise.id,
       userResponseText: trimmed,
-      wasCorrect: isCorrect,
+      wasCorrect: finalIsCorrect,
       responseTimeMs,
       hintUsed: hintLevel > 0,
-      aiFeedback: null,
+      aiFeedback: aiExplanation ?? null,
     });
 
     // Fire-and-forget DB write — errors are logged but not surfaced to user
@@ -242,19 +295,21 @@ export default function ConstructionScreen() {
       sessionId: sessionId ?? 0,
       patternId: exercise.patternId,
       exerciseId: exercise.id,
-      verdict: matchResult,
+      verdict: finalVerdict,
       responseTimeMs,
       hintLevelUsed: hintLevel,
+      errorType: aiErrorType,
       source: 'construction',
     }).catch(e => console.warn('Failed to persist attempt:', e));
 
-    updatePatternProgress(exercise.patternId, isCorrect, responseTimeMs);
+    updatePatternProgress(exercise.patternId, finalIsCorrect, responseTimeMs);
 
     setLastResult({
-      correct: isCorrect,
+      correct: finalIsCorrect,
       correctAnswer: bestMatch,
-      feedback: feedbackMessages[matchResult],
+      feedback: feedbackMessages[finalVerdict] ?? feedbackMessages[matchResult],
       userResponse: trimmed,
+      aiExplanation,
     });
     setFeedbackVisible(true);
   }
@@ -447,6 +502,7 @@ export default function ConstructionScreen() {
           userResponse={lastResult.userResponse}
           correctAnswer={lastResult.correctAnswer}
           feedback={lastResult.feedback}
+          explanation={lastResult.aiExplanation}
           onContinue={handleContinue}
         />
       )}
