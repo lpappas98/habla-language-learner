@@ -667,8 +667,8 @@ export const recordAttemptIncremental = async (
   userId: string,
   attempt: {
     sessionId: number;
-    patternId: number;
-    exerciseId: number;
+    patternId: number | null;
+    exerciseId: number | null;
     verdict: MatchResult;
     responseTimeMs: number;
     hintLevelUsed: number;
