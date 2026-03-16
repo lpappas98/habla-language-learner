@@ -32,6 +32,7 @@ export default function ReviewScreen() {
   const [feedbackVisible, setFeedbackVisible] = useState(false);
   const [lastResult, setLastResult] = useState<{
     correct: boolean;
+    isClose?: boolean;
     correctAnswer: string;
     feedback: string;
   } | null>(null);
@@ -135,6 +136,7 @@ export default function ReviewScreen() {
 
     setLastResult({
       correct: isCorrect,
+      isClose: matchResult === 'close',
       correctAnswer: bestMatch,
       feedback: feedbackMessages[matchResult] ?? '',
     });
@@ -369,9 +371,9 @@ export default function ReviewScreen() {
             {feedbackVisible && lastResult ? (
               /* Feedback card */
               <View style={{
-                backgroundColor: lastResult.correct ? 'rgba(39,174,96,0.12)' : 'rgba(231,76,60,0.12)',
+                backgroundColor: lastResult.isClose ? 'rgba(212,160,23,0.12)' : lastResult.correct ? 'rgba(39,174,96,0.12)' : 'rgba(231,76,60,0.12)',
                 borderWidth: 1.5,
-                borderColor: lastResult.correct ? theme.colors.green : theme.colors.red,
+                borderColor: lastResult.isClose ? theme.colors.gold : lastResult.correct ? theme.colors.green : theme.colors.red,
                 borderRadius: 20,
                 padding: 20,
                 gap: 12,
@@ -380,24 +382,22 @@ export default function ReviewScreen() {
                   <Ionicons
                     name={lastResult.correct ? 'checkmark-circle' : 'close-circle'}
                     size={24}
-                    color={lastResult.correct ? theme.colors.green : theme.colors.red}
+                    color={lastResult.isClose ? theme.colors.gold : lastResult.correct ? theme.colors.green : theme.colors.red}
                   />
                   <Text style={{
-                    color: lastResult.correct ? theme.colors.green : theme.colors.red,
+                    color: lastResult.isClose ? theme.colors.gold : lastResult.correct ? theme.colors.green : theme.colors.red,
                     fontWeight: '700',
                     fontSize: 16,
                   }}>
                     {lastResult.feedback}
                   </Text>
                 </View>
-                {!lastResult.correct && (
-                  <View>
-                    <Text style={{ color: theme.colors.brownMuted, fontSize: 12, marginBottom: 4 }}>Correct answer:</Text>
-                    <Text style={{ color: theme.colors.creamLight, fontSize: 18, fontWeight: '700' }}>
-                      {lastResult.correctAnswer}
-                    </Text>
-                  </View>
-                )}
+                <View>
+                  <Text style={{ color: theme.colors.brownMuted, fontSize: 12, marginBottom: 4 }}>Correct answer:</Text>
+                  <Text style={{ color: theme.colors.creamLight, fontSize: 18, fontWeight: '700' }}>
+                    {lastResult.correctAnswer}
+                  </Text>
+                </View>
                 <Pressable
                   onPress={handleConstructContinue}
                   style={{

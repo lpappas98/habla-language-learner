@@ -58,19 +58,17 @@ export function FeedbackOverlay({
             <Text className="text-habla-cream text-xl font-bold">
               {isClose ? 'Very close!' : correct ? '¡Correcto!' : 'Almost!'}
             </Text>
-            {(!correct || isClose) && (
+            {userResponse !== correctAnswer && (
               <Text className="text-habla-muted text-sm">You said: "{userResponse}"</Text>
             )}
           </View>
         </View>
 
-        {/* Correct answer */}
-        {(!correct || isClose) && (
-          <View className="bg-habla-surface rounded-xl p-3 mb-3">
-            <Text className="text-habla-muted text-xs mb-1">Correct answer:</Text>
-            <Text className="text-habla-gold text-lg font-semibold">{correctAnswer}</Text>
-          </View>
-        )}
+        {/* Correct answer — always shown so learners reinforce the correct form */}
+        <View className="bg-habla-surface rounded-xl p-3 mb-3">
+          <Text className="text-habla-muted text-xs mb-1">Correct answer:</Text>
+          <Text className="text-habla-gold text-lg font-semibold">{correctAnswer}</Text>
+        </View>
 
         {/* AI feedback */}
         {feedback && (
