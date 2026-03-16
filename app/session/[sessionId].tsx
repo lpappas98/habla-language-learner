@@ -1,9 +1,10 @@
 import React, { useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { Alert, View, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSessionStore } from '../../store/sessionStore';
 import { useUserStore } from '../../store/userStore';
 import { getPatterns, getExercisesForPattern, getAllPatternProgress } from '../../lib/db';
+import { findDeepestUnmetPrerequisite } from '../../lib/prerequisites';
 
 // Sub-screens (rendered in-place via phase state machine)
 import PatternUnlockScreen from './pattern-unlock';
@@ -46,6 +47,31 @@ export default function SessionOrchestrator() {
     if (!pattern) {
       router.back();
       return;
+    }
+
+    // Enforce prerequisites only when a specific pattern was explicitly requested
+    if (patternIdParam && !isNaN(Number(patternIdParam))) {
+      const prereqMap: Record<number, number[]> = {};
+      for (const p of patterns) {
+        prereqMap[p.id] = p.prerequisites;
+      }
+      const statusMap: Record<number, import('../../types').PatternStatus | null> = {};
+      for (const prog of progress) {
+        statusMap[prog.patternId] = prog.status;
+      }
+      const unmetId = findDeepestUnmetPrerequisite(pattern.id, prereqMap, statusMap);
+      if (unmetId !== null) {
+        const unmetPattern = patterns.find(p => p.id === unmetId);
+        Alert.alert(
+          'Complete Prerequisites First',
+          `You need to master "${unmetPattern?.titleEn ?? 'a previous pattern'}" before practicing this one.`,
+          [{
+            text: `Practice ${unmetPattern?.titleEn ?? 'prerequisite'}`,
+            onPress: () => router.replace(`/session/${unmetId}`),
+          }]
+        );
+        return;
+      }
     }
 
     const exercises = getExercisesForPattern(pattern.id);
