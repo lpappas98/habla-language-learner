@@ -5,6 +5,7 @@ import { useSessionStore } from '../../store/sessionStore';
 import { useUserStore } from '../../store/userStore';
 import { getPatterns, getExercisesForPattern, getAllPatternProgress } from '../../lib/db';
 import { findDeepestUnmetPrerequisite } from '../../lib/prerequisites';
+import type { PatternStatus } from '../../types';
 
 // Sub-screens (rendered in-place via phase state machine)
 import PatternUnlockScreen from './pattern-unlock';
@@ -55,7 +56,7 @@ export default function SessionOrchestrator() {
       for (const p of patterns) {
         prereqMap[p.id] = p.prerequisites;
       }
-      const statusMap: Record<number, import('../../types').PatternStatus | null> = {};
+      const statusMap: Record<number, PatternStatus | null> = {};
       for (const prog of progress) {
         statusMap[prog.patternId] = prog.status;
       }
