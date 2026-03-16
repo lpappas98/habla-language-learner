@@ -95,6 +95,41 @@ Respond ONLY with valid JSON (no markdown):
   }
 });
 
+// POST /ai/plan-session — Claude plans the session structure for the user
+aiRoutes.post('/plan-session', authMiddleware, async (c) => {
+  const userId = c.get('userId'); // from JWT via auth middleware
+  const body = await c.req.json();
+  const { session_type, due_patterns, recent_error_summary, session_history_summary } = body;
+
+  // Use session_date_local from client (device's YYYY-MM-DD in local timezone)
+  const sessionDateLocal = (body.session_date_local as string) || new Date().toISOString().slice(0, 10);
+  const key = cacheKey([userId, sessionDateLocal]);
+
+  try {
+    const raw = await withCache(key, 60 * 60 * 24, () => {
+      const userContent = JSON.stringify({
+        session_type,
+        due_patterns,
+        recent_error_summary,
+        session_history_summary,
+      });
+      return callClaude('plan-session', userContent, { maxTokens: 1024 });
+    });
+
+    const parsed = JSON.parse(raw);
+
+    // Clamp hint_delay_ms to [3000, 20000]
+    if (parsed.hint_delay_ms !== undefined) {
+      parsed.hint_delay_ms = Math.min(20000, Math.max(3000, parsed.hint_delay_ms));
+    }
+
+    return c.json(parsed);
+  } catch (err) {
+    console.error('AI plan-session error:', err);
+    return c.json({ error: 'planning_failed' }, 500);
+  }
+});
+
 const microChallengeSchema = z.object({
   masteredPatternSlugs: z.array(z.string()),
   timeOfDay: z.enum(['morning', 'afternoon', 'evening']),
