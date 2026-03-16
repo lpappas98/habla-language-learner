@@ -13,11 +13,12 @@ interface FeedbackOverlayProps {
   userResponse: string;
   correctAnswer: string;
   feedback?: string;
+  explanation?: string;
   onContinue: () => void;
 }
 
 export function FeedbackOverlay({
-  visible, correct, userResponse, correctAnswer, feedback, onContinue,
+  visible, correct, userResponse, correctAnswer, feedback, explanation, onContinue,
 }: FeedbackOverlayProps) {
   const translateY = useSharedValue(300);
   const backdropOpacity = useSharedValue(0);
@@ -75,6 +76,11 @@ export function FeedbackOverlay({
           <Text className="text-habla-cream text-sm mb-4">{feedback}</Text>
         )}
 
+        {/* AI explanation */}
+        {explanation && (
+          <Text style={styles.explanation}>{explanation}</Text>
+        )}
+
         {/* Continue button */}
         <Pressable
           onPress={onContinue}
@@ -88,3 +94,13 @@ export function FeedbackOverlay({
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  explanation: {
+    color: theme.colors.brownTan,
+    fontSize: 14,
+    fontStyle: 'italic',
+    marginTop: 8,
+    lineHeight: 20,
+  },
+});
