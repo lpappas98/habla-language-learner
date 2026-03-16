@@ -156,3 +156,9 @@ export interface Session {
 export interface PatternWithExercises extends Pattern {
   exercises: Exercise[];
 }
+
+const EXERCISE_TYPES = ['construct', 'recognize', 'listen', 'respond', 'micro_challenge'] as const;
+export type ExerciseType = typeof EXERCISE_TYPES[number];
+
+export const isExerciseType = (value: unknown): value is ExerciseType =>
+  EXERCISE_TYPES.includes(value as ExerciseType);

@@ -1,5 +1,5 @@
 import * as SQLite from 'expo-sqlite';
-import { Exercise, Pattern, UserPatternProgress, ExerciseAttempt, PatternStatus, ErrorType } from '../types';
+import { Exercise, Pattern, UserPatternProgress, ExerciseAttempt, PatternStatus, ErrorType, isExerciseType } from '../types';
 import { computeSM2, SRS_QUALITY } from './srs';
 import { SRS_EASE_DEFAULT } from './constants';
 import { computeRollingAccuracy, shouldDemote } from './mastery';
@@ -255,7 +255,7 @@ function rowToExercise(r: ExerciseRow): Exercise {
   return {
     id: r.id,
     patternId: r.pattern_id,
-    type: r.type as Exercise['type'],
+    type: isExerciseType(r.type) ? r.type : 'construct',
     promptEn: r.prompt_en,
     expectedEs: r.expected_es,
     acceptableEs: JSON.parse(r.acceptable_es),

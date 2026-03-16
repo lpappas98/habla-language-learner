@@ -32,11 +32,11 @@ export default function PatternsScreen() {
     [allPatterns]
   );
 
-  // Tier 2 patterns — prefer DB rows, fall back to static data cast to Pattern
+  // Tier 2 patterns — prefer DB rows, fall back to static data mapped to Pattern
   const tier2PatternsForDisplay = useMemo((): Pattern[] => {
     const dbTier2 = allPatterns.filter(p => p.difficultyTier === 2);
     if (dbTier2.length > 0) return dbTier2;
-    return tier2Patterns as unknown as Pattern[];
+    return tier2Patterns.map(({ exercises: _exercises, ...p }) => p);
   }, [allPatterns]);
 
   const tier1MasteredCount = progressArray.filter(
