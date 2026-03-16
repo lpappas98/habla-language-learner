@@ -9,7 +9,7 @@
     "migrate": "node -e \"import('./src/db/client.js').then(m => m.runMigrations())\""
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.40.0",
+    "@anthropic-ai/sdk": "^0.40.1",
     "@hono/node-server": "^1.13.0",
     "dotenv": "^16.4.5",
     "hono": "^4.6.0",
