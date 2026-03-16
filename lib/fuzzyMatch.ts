@@ -47,7 +47,8 @@ function normalizeStrict(s: string): string {
 export function evaluateResponse(
   userResponse: string,
   expectedEs: string,
-  acceptableEs: string[]
+  acceptableEs: string[],
+  fuzzyMatchThreshold = 0.15
 ): { result: MatchResult; bestMatch: string; distance: number } {
   const allAccepted = [expectedEs, ...acceptableEs];
   const userNorm = normalize(userResponse);
@@ -102,7 +103,7 @@ export function evaluateResponse(
 
   if (bestDistance <= 1) {
     return { result: 'correct', bestMatch, distance: bestDistance };
-  } else if (bestDistance <= 3 || relativeDistance <= 0.15) {
+  } else if (bestDistance <= 3 || relativeDistance <= fuzzyMatchThreshold) {
     return { result: 'close', bestMatch, distance: bestDistance };
   } else if (bestDistance <= 8 || exactWordOverlap >= 0.5 || fuzzyWordOverlap >= 0.5) {
     return { result: 'partial', bestMatch, distance: bestDistance };

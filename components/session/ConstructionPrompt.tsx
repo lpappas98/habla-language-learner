@@ -33,11 +33,6 @@ export function ConstructionPrompt({ exercise, patternTitle, hintLevel, difficul
     }
   })();
 
-  // hintDelayMs is available on difficultyConfig for consumers that need
-  // a timed auto-hint (e.g. a parent timer). The component itself renders
-  // hints imperatively via hintLevel, but we pass the config through so
-  // parent screens can reference difficultyConfig.hintDelayMs directly.
-
   return (
     <View className="items-center gap-4 px-6">
       {/* Pattern chip */}

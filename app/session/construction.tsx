@@ -67,6 +67,15 @@ export default function ConstructionScreen() {
     startTimeRef.current = Date.now(); // Reset timer when exercise loads
   }, [constructIndex]);
 
+  // Auto-hint: after hintDelayMs of inactivity, nudge the user with hint level 1
+  useEffect(() => {
+    if (hintLevel > 0 || feedbackVisible) return;
+    const timer = setTimeout(() => {
+      if (hintLevel === 0) requestHint();
+    }, difficultyConfig.hintDelayMs);
+    return () => clearTimeout(timer);
+  }, [constructIndex, hintLevel, feedbackVisible, difficultyConfig.hintDelayMs, requestHint]);
+
   const pattern = currentPatternId ? getPattern(currentPatternId) : null;
 
   const handleSpeechResult = useCallback(
@@ -196,7 +205,8 @@ export default function ConstructionScreen() {
     const { result: matchResult, bestMatch } = evaluateResponse(
       trimmed,
       exercise.expectedEs,
-      exercise.acceptableEs
+      exercise.acceptableEs,
+      difficultyConfig.fuzzyMatchThreshold
     );
 
     const isCorrect = matchResult === 'correct' || matchResult === 'close';
