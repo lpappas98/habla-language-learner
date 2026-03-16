@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import Anthropic from '@anthropic-ai/sdk';
 import { cacheGet, cacheSet } from '../lib/redis.js';
-import { callClaude, withCache, cacheKey } from '../lib/ai.js';
+import { callClaude, callClaudeStream, withCache, cacheKey } from '../lib/ai.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 
 export const aiRoutes = new Hono();
@@ -175,6 +175,92 @@ Respond ONLY with valid JSON (no markdown):
   } catch {
     return c.json({ error: 'Failed to generate challenge' }, 500);
   }
+});
+
+// POST /ai/conversation — SSE streaming endpoint for real-time NPC conversation
+aiRoutes.post('/conversation', authMiddleware, async (c) => {
+  const body = await c.req.json();
+  const {
+    scenario,
+    turn_number,
+    conversation_history,
+    user_known_pattern_ids,
+    evaluate_last_turn,
+  } = body;
+
+  const userContent = JSON.stringify({
+    scenario,
+    turn_number,
+    conversation_history,
+    user_known_pattern_ids,
+    evaluate_last_turn,
+    instruction: evaluate_last_turn
+      ? 'Generate next NPC response AND evaluate the last user turn.'
+      : 'Generate the opening NPC line. No user turn to evaluate (set user_turn_feedback to null).',
+  });
+
+  c.header('Content-Type', 'text/event-stream');
+  c.header('Cache-Control', 'no-cache');
+  c.header('Connection', 'keep-alive');
+
+  const stream = callClaudeStream('conversation', userContent, { maxTokens: 1024 });
+
+  const SENTINEL = '---FEEDBACK---';
+  let npcBuffer = '';
+  let feedbackBuffer = '';
+  let sentinelFound = false;
+
+  return c.body(
+    new ReadableStream({
+      async start(controller) {
+        const encode = (data: object, event: string) => {
+          controller.enqueue(
+            new TextEncoder().encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`)
+          );
+        };
+
+        try {
+          for await (const chunk of stream) {
+            if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
+              const text = chunk.delta.text;
+
+              if (!sentinelFound) {
+                npcBuffer += text;
+                if (npcBuffer.includes(SENTINEL)) {
+                  sentinelFound = true;
+                  const parts = npcBuffer.split(SENTINEL);
+                  if (parts[0].trim()) encode({ token: parts[0] }, 'npc_token');
+                  feedbackBuffer = parts[1] ?? '';
+                } else {
+                  const safeLength = Math.max(0, npcBuffer.length - SENTINEL.length);
+                  if (safeLength > 0) {
+                    encode({ token: npcBuffer.slice(0, safeLength) }, 'npc_token');
+                    npcBuffer = npcBuffer.slice(safeLength);
+                  }
+                }
+              } else {
+                feedbackBuffer += text;
+              }
+            }
+          }
+
+          try {
+            const parsed = JSON.parse(feedbackBuffer.trim());
+            encode({ npc_response_en: parsed.npc_response_en ?? null }, 'translation');
+            encode({ user_turn_feedback: parsed.user_turn_feedback ?? null }, 'feedback');
+            encode({ conversation_complete: parsed.conversation_complete ?? false }, 'done');
+          } catch {
+            encode({ conversation_complete: false }, 'done');
+          }
+        } catch (err) {
+          console.error('AI conversation stream error:', err);
+          encode({ error: 'stream_failed' }, 'error');
+        } finally {
+          controller.close();
+        }
+      },
+    })
+  );
 });
 
 // POST /ai/generate-story — generate a contextual story using known patterns and vocabulary
