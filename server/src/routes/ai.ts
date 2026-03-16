@@ -176,3 +176,31 @@ Respond ONLY with valid JSON (no markdown):
     return c.json({ error: 'Failed to generate challenge' }, 500);
   }
 });
+
+// POST /ai/generate-story — generate a contextual story using known patterns and vocabulary
+aiRoutes.post('/generate-story', authMiddleware, async (c) => {
+  const body = await c.req.json();
+  const { known_pattern_ids, known_vocab_words, tier, story_index } = body;
+
+  // Sort pattern IDs so cache key is deterministic regardless of order
+  const sortedIds = [...known_pattern_ids].sort((a: number, b: number) => a - b);
+  const key = cacheKey([sortedIds.join(','), tier, story_index]);
+
+  try {
+    const raw = await withCache(key, null, () => { // null = permanent TTL
+      const userContent = JSON.stringify({
+        known_pattern_ids: sortedIds,
+        known_vocab_words,
+        tier,
+        story_variation_seed: story_index,
+      });
+      return callClaude('generate-story', userContent, { maxTokens: 2048 });
+    });
+
+    const parsed = JSON.parse(raw);
+    return c.json(parsed);
+  } catch (err) {
+    console.error('AI generate-story error:', err);
+    return c.json({ error: 'generation_failed' }, 500);
+  }
+});
