@@ -12,6 +12,7 @@ import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 import { getPattern, updatePatternProgress, recordAttemptIncremental, getDb } from '../../lib/db';
 import { useUserStore } from '../../store/userStore';
 import { MatchResult, evaluateResponse } from '../../lib/fuzzyMatch';
+import { getDifficultyConfig } from '../../lib/adaptiveDifficulty';
 import { theme } from '../../lib/theme';
 
 export default function ConstructionScreen() {
@@ -24,6 +25,9 @@ export default function ConstructionScreen() {
     setPhase,
     sessionId,
   } = useSessionStore();
+
+  const difficultyLevel = useSessionStore(s => s.difficultyLevel);
+  const difficultyConfig = getDifficultyConfig(difficultyLevel ?? 0.4);
 
   const constructExercises = useSessionStore(s => s.constructExercises);
   const [constructIndex, setConstructIndex] = useState(0);
@@ -302,6 +306,7 @@ export default function ConstructionScreen() {
             exercise={exercise}
             patternTitle={pattern?.titleEn ?? ''}
             hintLevel={hintLevel}
+            difficultyConfig={difficultyConfig}
           />
         </Animated.View>
       </View>

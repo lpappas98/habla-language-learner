@@ -12,6 +12,7 @@ interface SessionState {
   attempts: ExerciseAttempt[];
   startTime: number | null;
   hintLevel: number; // 0 = no hint, 1 = nudge, 2 = pattern reminder, 3 = partial answer
+  difficultyLevel: number; // 0–1 scalar; defaults to 0.4 (intermediate threshold)
 
   // Actions
   startSession: (patternId: number, exercises: Exercise[]) => void;
@@ -22,6 +23,7 @@ interface SessionState {
   requestHint: () => void;
   resetSession: () => void;
   setSessionId: (id: number) => void;
+  setDifficultyLevel: (level: number) => void;
 }
 
 const initialState = {
@@ -35,6 +37,7 @@ const initialState = {
   attempts: [] as ExerciseAttempt[],
   startTime: null,
   hintLevel: 0,
+  difficultyLevel: 0.4,
 };
 
 export const useSessionStore = create<SessionState>((set, get) => ({
@@ -86,6 +89,8 @@ export const useSessionStore = create<SessionState>((set, get) => ({
   },
 
   resetSession: () => set(initialState),
+
+  setDifficultyLevel: (level) => set({ difficultyLevel: Math.max(0, Math.min(1, level)) }),
 }));
 
 // Selectors

@@ -48,6 +48,18 @@ export interface DifficultyConfig {
   sentenceFrameMode: 'proactive' | 'level2' | 'level3' | 'never';
 }
 
+export type DifficultyLabel = 'beginner' | 'intermediate' | 'advanced';
+
+/**
+ * Maps a 0–1 difficulty scalar to a discrete label bucket.
+ * beginner: 0–0.39, intermediate: 0.40–0.69, advanced: 0.70–1.0
+ */
+export function toDifficultyLabel(scalar: number): DifficultyLabel {
+  if (scalar < 0.4) return 'beginner';
+  if (scalar < 0.7) return 'intermediate';
+  return 'advanced';
+}
+
 interface BaseExercise {
   id: number;
   patternId: number;

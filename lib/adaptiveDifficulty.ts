@@ -1,4 +1,10 @@
-import { Exercise, ExerciseAttempt, UserPatternProgress } from '../types';
+import { Exercise, ExerciseAttempt, UserPatternProgress, DifficultyConfig, toDifficultyLabel } from '../types';
+import { DIFFICULTY_CONFIGS } from './constants';
+
+export const getDifficultyConfig = (scalar: number): DifficultyConfig => {
+  const label = toDifficultyLabel(scalar);
+  return DIFFICULTY_CONFIGS[label];
+};
 
 export interface AdaptiveContext {
   availableExercises: Exercise[];
