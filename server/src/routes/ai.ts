@@ -2,64 +2,51 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import Anthropic from '@anthropic-ai/sdk';
 import { cacheGet, cacheSet } from '../lib/redis.js';
+import { callClaude, withCache, cacheKey } from '../lib/ai.js';
+import { authMiddleware } from '../middleware/authMiddleware.js';
 
 export const aiRoutes = new Hono();
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-const evaluateSchema = z.object({
-  exercisePromptEn: z.string(),
-  userTranscription: z.string(),
-  expectedEs: z.string(),
-  acceptableEs: z.array(z.string()).optional(),
-});
+// normalizeSpanish is duplicated here from the mobile lib/utils.ts
+// Keep it co-located in the server to avoid cross-boundary imports
+const normalizeSpanish = (s: string): string =>
+  s.trim().toLowerCase().replace(/[¿?¡!.,;:]/g, '').replace(/\s+/g, ' ').trim();
 
 // POST /ai/evaluate — Claude evaluates open-ended Spanish response
-aiRoutes.post('/evaluate', async (c) => {
+aiRoutes.post('/evaluate', authMiddleware, async (c) => {
   const body = await c.req.json();
-  const parsed = evaluateSchema.safeParse(body);
-  if (!parsed.success) return c.json({ error: parsed.error.flatten() }, 400);
+  const {
+    pattern_id,
+    pattern_description,
+    expected_answer_es,
+    acceptable_alternatives,
+    user_answer,
+    hint_level_used,
+  } = body;
 
-  const { exercisePromptEn, userTranscription, expectedEs, acceptableEs = [] } = parsed.data;
+  const normalizedAnswer = normalizeSpanish(user_answer);
+  const key = cacheKey([pattern_id, normalizedAnswer]);
 
-  // Cache by input hash
-  const cacheKey = `ai:eval:${Buffer.from(userTranscription + expectedEs).toString('base64').slice(0, 40)}`;
-  const cached = await cacheGet(cacheKey);
-  if (cached) return c.json(JSON.parse(cached));
-
-  const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 300,
-    messages: [{
-      role: 'user',
-      content: `You are evaluating a Spanish language learner's response.
-
-Task given: "${exercisePromptEn}"
-Learner said: "${userTranscription}"
-Expected answer: "${expectedEs}"
-${acceptableEs.length > 0 ? `Other acceptable answers: ${acceptableEs.join(', ')}` : ''}
-
-Respond ONLY with valid JSON (no markdown):
-{
-  "correct": true or false,
-  "meaning_preserved": true or false,
-  "feedback_en": "brief encouraging feedback in 1 sentence",
-  "corrected_version": "corrected Spanish if wrong, omit if correct"
-}`,
-    }],
-  });
-
-  const text = message.content[0].type === 'text' ? message.content[0].text : '{}';
-
-  let result;
   try {
-    result = JSON.parse(text);
-  } catch {
-    result = { correct: false, meaning_preserved: false, feedback_en: 'Could not evaluate response.' };
-  }
+    const raw = await withCache(key, 60 * 60 * 24 * 7, () => {
+      const userContent = JSON.stringify({
+        pattern_description,
+        expected_answer: expected_answer_es,
+        acceptable_alternatives,
+        learner_answer: user_answer,
+        hint_level_used,
+      });
+      return callClaude('evaluate', userContent);
+    });
 
-  await cacheSet(cacheKey, JSON.stringify(result), 86400);
-  return c.json(result);
+    const parsed = JSON.parse(raw);
+    return c.json(parsed);
+  } catch (err) {
+    console.error('AI evaluate error:', err);
+    return c.json({ error: 'evaluation_failed' }, 500);
+  }
 });
 
 const generateSchema = z.object({
