@@ -14,6 +14,7 @@ import { useUserStore } from '../../store/userStore';
 import { MatchResult, evaluateResponse } from '../../lib/fuzzyMatch';
 import { getDifficultyConfig } from '../../lib/adaptiveDifficulty';
 import { theme } from '../../lib/theme';
+import { FEEDBACK_MESSAGES } from '../../lib/constants';
 
 export default function ConstructionScreen() {
   const userId = useUserStore(s => s.userId) ?? 'local';
@@ -99,11 +100,12 @@ export default function ConstructionScreen() {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
 
+      const pick = (arr: readonly string[]) => arr[Math.floor(Math.random() * arr.length)];
       const feedbackMessages: Record<MatchResult, string> = {
-        correct: '¡Perfecto! Excellent construction.',
-        close: 'Great! Minor variation — still correct.',
+        correct: pick(FEEDBACK_MESSAGES.correct),
+        close: pick(FEEDBACK_MESSAGES.close),
         partial: 'You got part of it. Keep trying!',
-        incorrect: "Not quite. Review the pattern and try again.",
+        incorrect: pick(FEEDBACK_MESSAGES.incorrect),
       };
 
       recordAttempt({
@@ -217,11 +219,12 @@ export default function ConstructionScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
 
+    const pick = (arr: readonly string[]) => arr[Math.floor(Math.random() * arr.length)];
     const feedbackMessages: Record<MatchResult, string> = {
-      correct: '¡Perfecto! Excellent construction.',
-      close: 'Great! Minor variation — still correct.',
+      correct: pick(FEEDBACK_MESSAGES.correct),
+      close: pick(FEEDBACK_MESSAGES.close),
       partial: 'You got part of it. Keep trying!',
-      incorrect: "Not quite. Review the pattern and try again.",
+      incorrect: pick(FEEDBACK_MESSAGES.incorrect),
     };
 
     recordAttempt({

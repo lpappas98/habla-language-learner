@@ -9,10 +9,7 @@ import { LevelBadge } from '../../components/curriculum/LevelBadge';
 import { ProgressBar } from '../../components/common/ProgressBar';
 import { theme } from '../../lib/theme';
 import { useAllProgress } from '../../hooks/useAllProgress';
-
-// Tier totals (hardcoded — update when tier 2 data ships)
-const TIER1_TOTAL = 15;
-const TIER2_TOTAL = 25;
+import { TIER1_PATTERN_COUNT, TIER2_PATTERN_COUNT } from '../../lib/constants';
 
 function getCefrLevel(masteredCount: number): string {
   if (masteredCount <= 5) return 'A0';
@@ -45,7 +42,7 @@ export default function ProfileScreen() {
   // Tier breakdown
   const tier1Mastered = progressArray.filter(p => p.status === 'mastered').length;
   // Tier 2 mastered would require join with patterns table — approximate as 0 for now
-  // (pattern_id > TIER1_TOTAL is a rough proxy, depends on data)
+  // (pattern_id > TIER1_PATTERN_COUNT is a rough proxy, depends on data)
   const tier2Mastered = 0;
 
   const totalExercises = sessions.reduce((s, sess) => s + sess.exercises_completed, 0);
@@ -152,7 +149,7 @@ export default function ProfileScreen() {
               </View>
             ))}
           </View>
-          <ProgressBar progress={mastered / TIER1_TOTAL} label="Tier 1 progress" showPercentage />
+          <ProgressBar progress={mastered / TIER1_PATTERN_COUNT} label="Tier 1 progress" showPercentage />
 
           {/* Tier breakdown */}
           <View style={{ marginTop: 14, gap: 6 }}>
@@ -162,13 +159,13 @@ export default function ProfileScreen() {
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
               <Text style={{ color: theme.colors.creamLight, fontSize: 13 }}>Tier 1</Text>
               <Text style={{ color: theme.colors.gold, fontSize: 13, fontWeight: '600' }}>
-                {tier1Mastered}/{TIER1_TOTAL}
+                {tier1Mastered}/{TIER1_PATTERN_COUNT}
               </Text>
             </View>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
               <Text style={{ color: theme.colors.creamLight, fontSize: 13 }}>Tier 2</Text>
               <Text style={{ color: tier2Mastered > 0 ? theme.colors.gold : theme.colors.brownBorder, fontSize: 13, fontWeight: '600' }}>
-                {tier2Mastered}/{TIER2_TOTAL}
+                {tier2Mastered}/{TIER2_PATTERN_COUNT}
               </Text>
             </View>
           </View>

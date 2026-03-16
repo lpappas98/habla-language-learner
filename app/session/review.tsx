@@ -8,6 +8,8 @@ import { getDueExercisesForReview, updatePatternProgress, recordAttemptIncrement
 import { useUserStore } from '../../store/userStore';
 import { evaluateResponse } from '../../lib/fuzzyMatch';
 import { Exercise } from '../../types';
+import { FEEDBACK_MESSAGES } from '../../lib/constants';
+import { theme } from '../../lib/theme';
 
 const MAX_EXERCISES = 20;
 
@@ -123,11 +125,12 @@ export default function ReviewScreen() {
       source: 'construction',
     }).catch(e => console.warn('Failed to persist attempt:', e));
 
+    const pick = (arr: readonly string[]) => arr[Math.floor(Math.random() * arr.length)];
     const feedbackMessages: Record<string, string> = {
-      correct: '¡Perfecto!',
-      close: 'Great — minor variation.',
+      correct: pick(FEEDBACK_MESSAGES.correct),
+      close: pick(FEEDBACK_MESSAGES.close),
       partial: 'You got part of it.',
-      incorrect: 'Not quite.',
+      incorrect: pick(FEEDBACK_MESSAGES.incorrect),
     };
 
     setLastResult({
@@ -160,7 +163,7 @@ export default function ReviewScreen() {
   // ── Done screen ────────────────────────────────────────────────────────────
   if (done) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#1A1008' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.brown }}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
           <Animated.View entering={FadeInDown.duration(400)} style={{ alignItems: 'center', gap: 16 }}>
             <View style={{
@@ -169,32 +172,32 @@ export default function ReviewScreen() {
               borderRadius: 40,
               backgroundColor: 'rgba(212,160,23,0.15)',
               borderWidth: 2,
-              borderColor: '#D4A017',
+              borderColor: theme.colors.gold,
               alignItems: 'center',
               justifyContent: 'center',
             }}>
-              <Ionicons name="checkmark-done" size={36} color="#D4A017" />
+              <Ionicons name="checkmark-done" size={36} color={theme.colors.gold} />
             </View>
-            <Text style={{ color: '#F5E6D0', fontSize: 26, fontWeight: '800', textAlign: 'center' }}>
+            <Text style={{ color: theme.colors.creamLight, fontSize: 26, fontWeight: '800', textAlign: 'center' }}>
               Review Complete
             </Text>
-            <Text style={{ color: '#8B7355', fontSize: 16, textAlign: 'center' }}>
+            <Text style={{ color: theme.colors.brownMuted, fontSize: 16, textAlign: 'center' }}>
               {correctCount} of {total} correct
             </Text>
-            <Text style={{ color: '#8B7355', fontSize: 14, textAlign: 'center' }}>
+            <Text style={{ color: theme.colors.brownMuted, fontSize: 14, textAlign: 'center' }}>
               Items reviewed will be rescheduled based on your answers.
             </Text>
             <Pressable
               onPress={() => router.replace('/')}
               style={{
-                backgroundColor: '#D4A017',
+                backgroundColor: theme.colors.gold,
                 borderRadius: 16,
                 paddingVertical: 16,
                 paddingHorizontal: 40,
                 marginTop: 8,
               }}
             >
-              <Text style={{ color: '#1A1008', fontWeight: '800', fontSize: 17 }}>
+              <Text style={{ color: theme.colors.brown, fontWeight: '800', fontSize: 17 }}>
                 Back to Home
               </Text>
             </Pressable>
@@ -207,34 +210,34 @@ export default function ReviewScreen() {
   // ── Loading / empty ────────────────────────────────────────────────────────
   if (!isReady) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#1A1008', alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ color: '#8B7355' }}>Loading review...</Text>
+      <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.brown, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ color: theme.colors.brownMuted }}>Loading review...</Text>
       </SafeAreaView>
     );
   }
 
   if (total === 0) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#1A1008' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.brown }}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
-          <Ionicons name="checkmark-circle" size={64} color="#D4A017" />
-          <Text style={{ color: '#F5E6D0', fontSize: 22, fontWeight: '800', marginTop: 16, textAlign: 'center' }}>
+          <Ionicons name="checkmark-circle" size={64} color={theme.colors.gold} />
+          <Text style={{ color: theme.colors.creamLight, fontSize: 22, fontWeight: '800', marginTop: 16, textAlign: 'center' }}>
             Nothing due!
           </Text>
-          <Text style={{ color: '#8B7355', fontSize: 15, textAlign: 'center', marginTop: 8 }}>
+          <Text style={{ color: theme.colors.brownMuted, fontSize: 15, textAlign: 'center', marginTop: 8 }}>
             You're all caught up. Check back later.
           </Text>
           <Pressable
             onPress={() => router.replace('/')}
             style={{
-              backgroundColor: '#D4A017',
+              backgroundColor: theme.colors.gold,
               borderRadius: 14,
               paddingVertical: 14,
               paddingHorizontal: 32,
               marginTop: 24,
             }}
           >
-            <Text style={{ color: '#1A1008', fontWeight: '700', fontSize: 16 }}>Back to Home</Text>
+            <Text style={{ color: theme.colors.brown, fontWeight: '700', fontSize: 16 }}>Back to Home</Text>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -248,26 +251,26 @@ export default function ReviewScreen() {
   const correctIndex = exercise.type === 'recognize' ? exercise.correctIndex : 0;
 
   function optionBg(i: number) {
-    if (selectedIndex === null) return '#2A1A0A';
+    if (selectedIndex === null) return theme.colors.brownMidDark;
     if (i === correctIndex) return 'rgba(39,174,96,0.2)';
     if (i === selectedIndex) return 'rgba(231,76,60,0.2)';
-    return '#2A1A0A';
+    return theme.colors.brownMidDark;
   }
   function optionBorder(i: number) {
     if (selectedIndex === null) return 'rgba(212,160,23,0.2)';
-    if (i === correctIndex) return '#27AE60';
-    if (i === selectedIndex) return '#E74C3C';
+    if (i === correctIndex) return theme.colors.green;
+    if (i === selectedIndex) return theme.colors.red;
     return 'rgba(212,160,23,0.1)';
   }
   function optionText(i: number) {
-    if (selectedIndex === null) return '#F5E6D0';
-    if (i === correctIndex) return '#27AE60';
-    if (i === selectedIndex) return '#E74C3C';
-    return '#8B7355';
+    if (selectedIndex === null) return theme.colors.creamLight;
+    if (i === correctIndex) return theme.colors.green;
+    if (i === selectedIndex) return theme.colors.red;
+    return theme.colors.brownMuted;
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#1A1008' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.brown }}>
       {/* Top bar */}
       <View style={{
         flexDirection: 'row',
@@ -278,20 +281,20 @@ export default function ReviewScreen() {
         gap: 12,
       }}>
         <Pressable onPress={() => router.replace('/')} style={{ padding: 4 }}>
-          <Ionicons name="close" size={24} color="#A08060" />
+          <Ionicons name="close" size={24} color={theme.colors.brownTan} />
         </Pressable>
 
         {/* Progress bar */}
-        <View style={{ flex: 1, height: 6, backgroundColor: '#2A1A0A', borderRadius: 3, overflow: 'hidden' }}>
+        <View style={{ flex: 1, height: 6, backgroundColor: theme.colors.brownMidDark, borderRadius: 3, overflow: 'hidden' }}>
           <View style={{
             width: `${((currentIndex) / total) * 100}%`,
             height: '100%',
-            backgroundColor: '#D4A017',
+            backgroundColor: theme.colors.gold,
             borderRadius: 3,
           }} />
         </View>
 
-        <Text style={{ color: '#8B7355', fontSize: 13, minWidth: 40, textAlign: 'right' }}>
+        <Text style={{ color: theme.colors.brownMuted, fontSize: 13, minWidth: 40, textAlign: 'right' }}>
           {currentIndex + 1}/{total}
         </Text>
       </View>
@@ -307,7 +310,7 @@ export default function ReviewScreen() {
           paddingVertical: 5,
           alignSelf: 'flex-start',
         }}>
-          <Text style={{ color: '#D4A017', fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' }}>
+          <Text style={{ color: theme.colors.gold, fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' }}>
             {isRecognize ? 'Recognize' : 'Construct'}
           </Text>
         </View>
@@ -317,10 +320,10 @@ export default function ReviewScreen() {
       <View style={{ flex: 1, paddingHorizontal: 24 }}>
         {/* Prompt */}
         <Animated.View key={`prompt-${currentIndex}`} entering={FadeInDown.delay(50).duration(300)} style={{ marginBottom: 28 }}>
-          <Text style={{ color: '#8B7355', fontSize: 13, marginBottom: 6 }}>
+          <Text style={{ color: theme.colors.brownMuted, fontSize: 13, marginBottom: 6 }}>
             {isRecognize ? 'Choose the correct Spanish:' : 'Construct the Spanish:'}
           </Text>
-          <Text style={{ color: '#F5E6D0', fontSize: 22, fontWeight: '700', lineHeight: 30 }}>
+          <Text style={{ color: theme.colors.creamLight, fontSize: 22, fontWeight: '700', lineHeight: 30 }}>
             {exercise.promptEn}
           </Text>
         </Animated.View>
@@ -351,10 +354,10 @@ export default function ReviewScreen() {
                     {option}
                   </Text>
                   {selectedIndex !== null && i === correctIndex && (
-                    <Ionicons name="checkmark-circle" size={22} color="#27AE60" />
+                    <Ionicons name="checkmark-circle" size={22} color={theme.colors.green} />
                   )}
                   {selectedIndex !== null && i === selectedIndex && i !== correctIndex && (
-                    <Ionicons name="close-circle" size={22} color="#E74C3C" />
+                    <Ionicons name="close-circle" size={22} color={theme.colors.red} />
                   )}
                 </Pressable>
               </Animated.View>
@@ -368,7 +371,7 @@ export default function ReviewScreen() {
               <View style={{
                 backgroundColor: lastResult.correct ? 'rgba(39,174,96,0.12)' : 'rgba(231,76,60,0.12)',
                 borderWidth: 1.5,
-                borderColor: lastResult.correct ? '#27AE60' : '#E74C3C',
+                borderColor: lastResult.correct ? theme.colors.green : theme.colors.red,
                 borderRadius: 20,
                 padding: 20,
                 gap: 12,
@@ -377,10 +380,10 @@ export default function ReviewScreen() {
                   <Ionicons
                     name={lastResult.correct ? 'checkmark-circle' : 'close-circle'}
                     size={24}
-                    color={lastResult.correct ? '#27AE60' : '#E74C3C'}
+                    color={lastResult.correct ? theme.colors.green : theme.colors.red}
                   />
                   <Text style={{
-                    color: lastResult.correct ? '#27AE60' : '#E74C3C',
+                    color: lastResult.correct ? theme.colors.green : theme.colors.red,
                     fontWeight: '700',
                     fontSize: 16,
                   }}>
@@ -389,8 +392,8 @@ export default function ReviewScreen() {
                 </View>
                 {!lastResult.correct && (
                   <View>
-                    <Text style={{ color: '#8B7355', fontSize: 12, marginBottom: 4 }}>Correct answer:</Text>
-                    <Text style={{ color: '#F5E6D0', fontSize: 18, fontWeight: '700' }}>
+                    <Text style={{ color: theme.colors.brownMuted, fontSize: 12, marginBottom: 4 }}>Correct answer:</Text>
+                    <Text style={{ color: theme.colors.creamLight, fontSize: 18, fontWeight: '700' }}>
                       {lastResult.correctAnswer}
                     </Text>
                   </View>
@@ -398,14 +401,14 @@ export default function ReviewScreen() {
                 <Pressable
                   onPress={handleConstructContinue}
                   style={{
-                    backgroundColor: '#D4A017',
+                    backgroundColor: theme.colors.gold,
                     borderRadius: 12,
                     paddingVertical: 12,
                     alignItems: 'center',
                     marginTop: 4,
                   }}
                 >
-                  <Text style={{ color: '#1A1008', fontWeight: '700', fontSize: 15 }}>
+                  <Text style={{ color: theme.colors.brown, fontWeight: '700', fontSize: 15 }}>
                     {lastResult.correct ? 'Next →' : 'Try again'}
                   </Text>
                 </Pressable>
@@ -417,20 +420,20 @@ export default function ReviewScreen() {
                   value={typedText}
                   onChangeText={setTypedText}
                   placeholder="Type in Spanish..."
-                  placeholderTextColor="#5C3A1E"
+                  placeholderTextColor={theme.colors.brownBorder}
                   autoFocus
                   autoCapitalize="none"
                   keyboardType="default"
                   returnKeyType="done"
                   onSubmitEditing={handleTypeSubmit}
                   style={{
-                    backgroundColor: '#2A1A0A',
+                    backgroundColor: theme.colors.brownMidDark,
                     borderWidth: 1.5,
                     borderColor: typedText.length > 0 ? 'rgba(212,160,23,0.6)' : 'rgba(212,160,23,0.25)',
                     borderRadius: 16,
                     paddingHorizontal: 18,
                     paddingVertical: 14,
-                    color: '#F5E6D0',
+                    color: theme.colors.creamLight,
                     fontSize: 18,
                   }}
                 />
@@ -438,7 +441,7 @@ export default function ReviewScreen() {
                   onPress={handleTypeSubmit}
                   disabled={!typedText.trim()}
                   style={{
-                    backgroundColor: typedText.trim() ? '#D4A017' : '#3D2415',
+                    backgroundColor: typedText.trim() ? theme.colors.gold : theme.colors.brownDeep,
                     borderRadius: 14,
                     paddingVertical: 14,
                     alignItems: 'center',
@@ -446,7 +449,7 @@ export default function ReviewScreen() {
                   }}
                 >
                   <Text style={{
-                    color: typedText.trim() ? '#1A1008' : '#8B7355',
+                    color: typedText.trim() ? theme.colors.brown : theme.colors.brownMuted,
                     fontWeight: '700',
                     fontSize: 16,
                   }}>
@@ -457,7 +460,7 @@ export default function ReviewScreen() {
                   onPress={() => advanceToNext(false)}
                   style={{ alignItems: 'center', paddingVertical: 10 }}
                 >
-                  <Text style={{ color: '#8B7355', fontSize: 13 }}>Skip →</Text>
+                  <Text style={{ color: theme.colors.brownMuted, fontSize: 13 }}>Skip →</Text>
                 </Pressable>
               </View>
             )}

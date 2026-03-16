@@ -8,8 +8,7 @@ import { tier2Patterns } from '../../data/curriculum/tier2';
 import { theme } from '../../lib/theme';
 import { usePatterns } from '../../hooks/usePatterns';
 import { useAllProgress } from '../../hooks/useAllProgress';
-
-const TIER1_COUNT = 15;
+import { TIER1_PATTERN_COUNT } from '../../lib/constants';
 
 export default function PatternsScreen() {
   const { data: allPatterns = [] } = usePatterns();
@@ -42,7 +41,7 @@ export default function PatternsScreen() {
   const tier1MasteredCount = progressArray.filter(
     p => progressMap[p.patternId] === 'mastered' && tier1Patterns.some(t => t.id === p.patternId)
   ).length;
-  const tier1Complete = tier1MasteredCount >= TIER1_COUNT;
+  const tier1Complete = tier1MasteredCount >= TIER1_PATTERN_COUNT;
 
   const activePatterns = selectedTier === 1 ? tier1Patterns : tier2PatternsForDisplay;
   const masteredCount =
@@ -197,7 +196,7 @@ export default function PatternsScreen() {
               }}
             >
               <Text style={{ color: theme.colors.gold, fontWeight: '700', fontSize: 16 }}>
-                {tier1MasteredCount} / {TIER1_COUNT} mastered
+                {tier1MasteredCount} / {TIER1_PATTERN_COUNT} mastered
               </Text>
             </View>
           </View>
