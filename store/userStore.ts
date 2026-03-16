@@ -6,12 +6,15 @@ interface UserState {
   userId: string;
   isLoading: boolean;
   isAuthenticated: boolean;
+  tier1StoryIndex: number;
+  tier2StoryIndex: number;
 
   setUser: (user: User | null) => void;
   updateStreak: (days: number) => void;
   updateLevel: (level: number) => void;
   setLoading: (loading: boolean) => void;
   signOut: () => void;
+  incrementStoryIndex: (tier: 'tier1' | 'tier2') => void;
 }
 
 export const useUserStore = create<UserState>((set) => ({
@@ -19,6 +22,8 @@ export const useUserStore = create<UserState>((set) => ({
   userId: 'local',
   isLoading: true,
   isAuthenticated: false,
+  tier1StoryIndex: 0,
+  tier2StoryIndex: 0,
 
   setUser: (user) =>
     set({
@@ -47,4 +52,10 @@ export const useUserStore = create<UserState>((set) => ({
       isAuthenticated: false,
       isLoading: false,
     }),
+
+  incrementStoryIndex: (tier) =>
+    set(s => ({
+      tier1StoryIndex: tier === 'tier1' ? s.tier1StoryIndex + 1 : s.tier1StoryIndex,
+      tier2StoryIndex: tier === 'tier2' ? s.tier2StoryIndex + 1 : s.tier2StoryIndex,
+    })),
 }));

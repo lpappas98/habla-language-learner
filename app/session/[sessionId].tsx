@@ -5,7 +5,9 @@ import { useSessionStore } from '../../store/sessionStore';
 import { useUserStore } from '../../store/userStore';
 import { getPatterns, getExercisesForPattern, getAllPatternProgress } from '../../lib/db';
 import { findDeepestUnmetPrerequisite } from '../../lib/prerequisites';
-import type { PatternStatus } from '../../types';
+import { fetchSessionPlan } from '../../hooks/useSessionPlan';
+import { toLocalDateString } from '../../lib/utils';
+import type { PatternStatus, Exercise, RecognizeExercise, ConstructExercise } from '../../types';
 
 // Sub-screens (rendered in-place via phase state machine)
 import PatternUnlockScreen from './pattern-unlock';
@@ -13,13 +15,40 @@ import ConstructionScreen from './construction';
 import ImmersionScreen from './immersion';
 import SummaryScreen from './summary';
 
+/**
+ * Reorder a combined exercise array to match the AI-provided pattern order.
+ * Exercises whose patternId is not in planOrder are appended at the end.
+ */
+function reorderByPlan(exercises: Exercise[], planOrder: number[]): Exercise[] {
+  const ordered: Exercise[] = [];
+  const used = new Set<number>();
+
+  for (const patternId of planOrder) {
+    const matches = exercises.filter(e => e.patternId === patternId);
+    for (const ex of matches) {
+      if (!used.has(ex.id)) {
+        ordered.push(ex);
+        used.add(ex.id);
+      }
+    }
+  }
+
+  // Append any exercises not covered by the plan order
+  for (const ex of exercises) {
+    if (!used.has(ex.id)) ordered.push(ex);
+  }
+
+  return ordered;
+}
+
 export default function SessionOrchestrator() {
   const { sessionId: patternIdParam } = useLocalSearchParams<{ sessionId: string }>();
-  const { phase, startSession, setExercises } = useSessionStore();
+  const { phase, startSession, setExercises, setSessionPlan } = useSessionStore();
   const userId = useUserStore(s => s.userId) ?? 'local';
   const router = useRouter();
 
   useEffect(() => {
+    void (async () => {
     // Resolve which pattern to study
     const patterns = getPatterns();
     const progress = getAllPatternProgress(userId);
@@ -95,8 +124,32 @@ export default function SessionOrchestrator() {
       .sort(() => Math.random() - 0.5)
       .slice(0, 3);
 
-    setExercises(shuffledRecognize, shuffledConstruct);
-    startSession(pattern.id, [...shuffledRecognize, ...shuffledConstruct]);
+    const combined: Exercise[] = [...shuffledRecognize, ...shuffledConstruct];
+
+    // Fetch AI session plan; fall back gracefully if unavailable
+    const plan = await fetchSessionPlan(
+      {
+        session_type: 'mixed',
+        due_patterns: [],
+        recent_error_summary: [],
+        session_history_summary: { sessions_completed: 0, avg_accuracy: 0, longest_streak: 0 },
+        session_date_local: toLocalDateString(new Date()),
+      },
+      userId
+    );
+
+    if (plan && plan.exercise_order.length > 0) {
+      const reordered = reorderByPlan(combined, plan.exercise_order);
+      const reorderedRecognize = reordered.filter(e => e.type === 'recognize') as RecognizeExercise[];
+      const reorderedConstruct = reordered.filter(e => e.type !== 'recognize') as ConstructExercise[];
+      setExercises(reorderedRecognize, reorderedConstruct);
+      startSession(pattern.id, reordered);
+      setSessionPlan({ coachNote: plan.coach_note ?? null, focusErrorType: plan.focus_error_type });
+    } else {
+      setExercises(shuffledRecognize, shuffledConstruct);
+      startSession(pattern.id, combined);
+    }
+    })();
   }, []);
 
   if (phase === 'session_start') {

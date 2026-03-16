@@ -18,6 +18,7 @@ import { getPattern } from '../../lib/db';
 export default function HearExamplesScreen() {
   const router = useRouter();
   const currentPatternId = useSessionStore(s => s.currentPatternId);
+  const coachNote = useSessionStore(s => s.coachNote);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const autoPlayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -134,6 +135,36 @@ export default function HearExamplesScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#1A1008' }}>
       <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: 20, paddingBottom: 32 }}>
+        {/* Coach note banner */}
+        {coachNote && (
+          <Animated.View
+            entering={FadeInDown.delay(0).duration(400)}
+            style={{
+              backgroundColor: 'rgba(212,160,23,0.12)',
+              borderWidth: 1,
+              borderColor: 'rgba(212,160,23,0.35)',
+              borderRadius: 12,
+              paddingHorizontal: 14,
+              paddingVertical: 10,
+              marginBottom: 16,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 8,
+            }}
+          >
+            <Ionicons name="sparkles" size={14} color="#D4A017" />
+            <Text style={{
+              color: '#D4A017',
+              fontSize: 13,
+              fontWeight: '600',
+              flex: 1,
+              lineHeight: 18,
+            }}>
+              {coachNote}
+            </Text>
+          </Animated.View>
+        )}
+
         {/* Header */}
         <View style={{ marginBottom: 32 }}>
           <View style={{

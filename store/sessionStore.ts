@@ -13,6 +13,8 @@ interface SessionState {
   startTime: number | null;
   hintLevel: number; // 0 = no hint, 1 = nudge, 2 = pattern reminder, 3 = partial answer
   difficultyLevel: number; // 0–1 scalar; defaults to 0.4 (intermediate threshold)
+  coachNote: string | null;
+  focusErrorType: string | null;
 
   // Actions
   startSession: (patternId: number, exercises: Exercise[]) => void;
@@ -24,6 +26,7 @@ interface SessionState {
   resetSession: () => void;
   setSessionId: (id: number) => void;
   setDifficultyLevel: (level: number) => void;
+  setSessionPlan: (plan: { coachNote: string | null; focusErrorType: string | null }) => void;
 }
 
 const initialState = {
@@ -38,6 +41,8 @@ const initialState = {
   startTime: null,
   hintLevel: 0,
   difficultyLevel: 0.4,
+  coachNote: null as string | null,
+  focusErrorType: null as string | null,
 };
 
 export const useSessionStore = create<SessionState>((set, get) => ({
@@ -91,6 +96,8 @@ export const useSessionStore = create<SessionState>((set, get) => ({
   resetSession: () => set(initialState),
 
   setDifficultyLevel: (level) => set({ difficultyLevel: Math.max(0, Math.min(1, level)) }),
+
+  setSessionPlan: (plan) => set({ coachNote: plan.coachNote, focusErrorType: plan.focusErrorType }),
 }));
 
 // Selectors

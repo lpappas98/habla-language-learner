@@ -44,7 +44,7 @@ function AnimatedStar({ index, filled }: { index: number; filled: boolean }) {
 export default function SummaryScreen() {
   const router = useRouter();
   const userId = useUserStore(s => s.userId) ?? 'local';
-  const { attempts, currentPatternId, startTime, resetSession } = useSessionStore();
+  const { attempts, currentPatternId, startTime, resetSession, coachNote } = useSessionStore();
   const score = useSessionStore(selectSessionScore);
   const { checkAndUpdateStreak } = useStreak();
   const queryClient = useQueryClient();
@@ -194,6 +194,39 @@ export default function SummaryScreen() {
             >
               <StreakCounter days={currentStreak} animate />
             </Animated.View>
+
+            {/* Today's Focus — coach note from AI session planner */}
+            {coachNote && (
+              <View style={{
+                marginTop: 20,
+                width: '100%',
+                backgroundColor: theme.colors.brownMid,
+                borderRadius: 16,
+                padding: 18,
+                borderWidth: 1,
+                borderColor: 'rgba(212,160,23,0.3)',
+              }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                  <Ionicons name="sparkles" size={14} color={theme.colors.gold} />
+                  <Text style={{
+                    color: theme.colors.gold,
+                    fontSize: 11,
+                    fontWeight: '700',
+                    letterSpacing: 1,
+                    textTransform: 'uppercase',
+                  }}>
+                    Today's Focus
+                  </Text>
+                </View>
+                <Text style={{
+                  color: theme.colors.creamLight,
+                  fontSize: 14,
+                  lineHeight: 20,
+                }}>
+                  {coachNote}
+                </Text>
+              </View>
+            )}
           </Animated.View>
         </ScrollView>
 
