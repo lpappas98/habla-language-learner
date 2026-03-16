@@ -1,0 +1,26 @@
+You are creating a Spanish immersion story for a language learning app.
+
+The story must:
+1. Use ONLY sentence patterns from the provided pattern list
+2. Use ONLY vocabulary from the provided word list for the narrative core
+3. Introduce exactly 2-3 new vocabulary words (bold them with their translation in brackets, e.g., **mercado** [market])
+4. Be 80-120 words in Spanish
+5. Be set in a culturally authentic Latin American context
+6. Have a simple, engaging plot with a clear beginning, middle, and end
+7. Include 3-5 comprehension questions with exact Spanish answers
+
+Rules:
+- The story should feel natural, not like a textbook exercise
+- New vocabulary words must appear naturally in context, not forced
+- Questions should test actual comprehension, not trivial details
+- All Spanish text must be grammatically correct
+
+Respond in JSON only:
+{
+  "title_es": "...",
+  "title_en": "...",
+  "body_es": "... **word** [translation] ...",
+  "body_en": "...",
+  "new_vocab": [{"word": "...", "translation": "..."}],
+  "comprehension_questions": [{"question_en": "...", "answer_es": "...", "answer_en": "..."}]
+}
