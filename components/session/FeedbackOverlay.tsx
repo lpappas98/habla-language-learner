@@ -10,6 +10,7 @@ import { theme } from '../../lib/theme';
 interface FeedbackOverlayProps {
   visible: boolean;
   correct: boolean;
+  isClose?: boolean;
   userResponse: string;
   correctAnswer: string;
   feedback?: string;
@@ -18,7 +19,7 @@ interface FeedbackOverlayProps {
 }
 
 export function FeedbackOverlay({
-  visible, correct, userResponse, correctAnswer, feedback, explanation, onContinue,
+  visible, correct, isClose, userResponse, correctAnswer, feedback, explanation, onContinue,
 }: FeedbackOverlayProps) {
   const translateY = useSharedValue(300);
   const backdropOpacity = useSharedValue(0);
@@ -52,19 +53,19 @@ export function FeedbackOverlay({
       >
         {/* Icon + result */}
         <View className="flex-row items-center gap-3 mb-3">
-          <Ionicons name={correct ? 'checkmark-circle' : 'close-circle'} size={40} color={correct ? theme.colors.white : theme.colors.red} />
+          <Ionicons name={correct ? 'checkmark-circle' : 'close-circle'} size={40} color={isClose ? theme.colors.gold : correct ? theme.colors.white : theme.colors.red} />
           <View>
             <Text className="text-habla-cream text-xl font-bold">
-              {correct ? '¡Correcto!' : 'Almost!'}
+              {isClose ? 'Very close!' : correct ? '¡Correcto!' : 'Almost!'}
             </Text>
-            {!correct && (
+            {(!correct || isClose) && (
               <Text className="text-habla-muted text-sm">You said: "{userResponse}"</Text>
             )}
           </View>
         </View>
 
         {/* Correct answer */}
-        {!correct && (
+        {(!correct || isClose) && (
           <View className="bg-habla-surface rounded-xl p-3 mb-3">
             <Text className="text-habla-muted text-xs mb-1">Correct answer:</Text>
             <Text className="text-habla-gold text-lg font-semibold">{correctAnswer}</Text>

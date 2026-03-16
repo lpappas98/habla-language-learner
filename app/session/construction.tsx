@@ -55,6 +55,7 @@ export default function ConstructionScreen() {
   const [feedbackVisible, setFeedbackVisible] = useState(false);
   const [lastResult, setLastResult] = useState<{
     correct: boolean;
+    isClose?: boolean;
     correctAnswer: string;
     feedback: string;
     userResponse: string;
@@ -163,6 +164,7 @@ export default function ConstructionScreen() {
 
       setLastResult({
         correct: finalIsCorrect,
+        isClose: finalVerdict === 'close',
         correctAnswer: bestMatch,
         feedback: feedbackMessages[finalVerdict] ?? feedbackMessages[matchResult],
         userResponse: transcript,
@@ -306,6 +308,7 @@ export default function ConstructionScreen() {
 
     setLastResult({
       correct: finalIsCorrect,
+      isClose: finalVerdict === 'close',
       correctAnswer: bestMatch,
       feedback: feedbackMessages[finalVerdict] ?? feedbackMessages[matchResult],
       userResponse: trimmed,
@@ -499,6 +502,7 @@ export default function ConstructionScreen() {
         <FeedbackOverlay
           visible={feedbackVisible}
           correct={lastResult.correct}
+          isClose={lastResult.isClose}
           userResponse={lastResult.userResponse}
           correctAnswer={lastResult.correctAnswer}
           feedback={lastResult.feedback}
